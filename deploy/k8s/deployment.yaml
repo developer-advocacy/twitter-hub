@@ -19,10 +19,8 @@ spec:
           imagePullPolicy: Always
           name: api
           env:
-
             - name: LANG
               value: "en_US.UTF-8"
-
             - name: SPRING_R2DBC_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -107,7 +105,6 @@ spec:
 #              value: "true"
 #            - name: BLOG_API_SERVER_URI
 #              value: "https://api.joshlong.com"
-
           readinessProbe:
             httpGet:
               port: 8080
