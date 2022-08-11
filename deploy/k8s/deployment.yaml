@@ -15,7 +15,7 @@ spec:
         app: twitter
     spec:
       containers:
-        - image: gcr.io/bootiful/twitter-service
+        - image: gcr.io/bootiful/twitter
           imagePullPolicy: Always
           name: api
           env:
