@@ -33,27 +33,27 @@ import org.springframework.web.reactive.function.client.WebClient;
 @SpringBootApplication
 public class Application {
 
-    public static void main(String[] args) {
-        SpringApplication.run(Application.class, args);
-    }
+	public static void main(String[] args) {
+		SpringApplication.run(Application.class, args);
+	}
 
-    @Bean
-    WebClient webClient(WebClient.Builder webClient) {
-        return webClient.build();
-    }
+	@Bean
+	WebClient webClient(WebClient.Builder webClient) {
+		return webClient.build();
+	}
 
-    @Bean
-    ApplicationRunner applicationRunner() {
-        return args -> System.getenv().forEach((k, v) -> log.info(k + "=" + v));
-    }
+	@Bean
+	ApplicationRunner applicationRunner() {
+		return args -> System.getenv().forEach((k, v) -> log.info(k + "=" + v));
+	}
 
-    @Bean
-    TwitterApiIntegration integration(
-            @Value("${spring.security.oauth2.client.registration.twitter.client-id}") String clientId,
-            @Value("${spring.security.oauth2.client.registration.twitter.client-secret}") String clientSecret,
-            WebClient http, ClientService clientService, ObjectMapper om, TwitterRegistrationService registrations) {
-        return new TwitterApiIntegration(clientId, clientSecret, http, clientService, registrations, om);
-    }
+	@Bean
+	TwitterApiIntegration integration(
+			@Value("${spring.security.oauth2.client.registration.twitter.client-id}") String clientId,
+			@Value("${spring.security.oauth2.client.registration.twitter.client-secret}") String clientSecret,
+			WebClient http, ClientService clientService, ObjectMapper om, TwitterRegistrationService registrations) {
+		return new TwitterApiIntegration(clientId, clientSecret, http, clientService, registrations, om);
+	}
 
 }
 
@@ -65,39 +65,39 @@ public class Application {
 @EnableWebSecurity
 class SecurityConfiguration {
 
-    @Bean
-    TextEncryptor encryptor(TwitterProperties properties) {
-        return Encryptors.text(properties.encryption().password(), properties.encryption().salt());
-    }
+	@Bean
+	TextEncryptor encryptor(TwitterProperties properties) {
+		return Encryptors.text(properties.encryption().password(), properties.encryption().salt());
+	}
 
-    @Bean
-    PasswordEncoder passwordEncoder() {
-        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
-    }
+	@Bean
+	PasswordEncoder passwordEncoder() {
+		return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+	}
 
-    @Bean
-    DefaultSecurityFilterChain springSecurity(HttpSecurity http, //
-                                              OAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepository, //
-                                              OAuth2AuthorizationRequestResolver authorizationResolver) throws Exception {
-        http//
-                .authorizeHttpRequests(requests -> requests.mvcMatchers("/send").permitAll() // todo
-                        // remove
-                        // this
-                        .anyRequest().authenticated())//
-                .oauth2Login(oauth2 -> oauth2.authorizedClientRepository(oAuth2AuthorizedClientRepository)
-                        .authorizationEndpoint(
-                                authorization -> authorization.authorizationRequestResolver(authorizationResolver)));
-        return http.build();
-    }
+	@Bean
+	DefaultSecurityFilterChain springSecurity(HttpSecurity http, //
+			OAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepository, //
+			OAuth2AuthorizationRequestResolver authorizationResolver) throws Exception {
+		http//
+				.authorizeHttpRequests(requests -> requests.mvcMatchers("/send").permitAll() // todo
+						// remove
+						// this
+						.anyRequest().authenticated())//
+				.oauth2Login(oauth2 -> oauth2.authorizedClientRepository(oAuth2AuthorizedClientRepository)
+						.authorizationEndpoint(
+								authorization -> authorization.authorizationRequestResolver(authorizationResolver)));
+		return http.build();
+	}
 
-    @Bean
-    OAuth2AuthorizationRequestResolver authorizationRequestResolver(
-            ClientRegistrationRepository clientRegistrationRepository) {
-        var authorizationRequestResolver = new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository,
-                "/oauth2/authorization");
-        authorizationRequestResolver
-                .setAuthorizationRequestCustomizer(OAuth2AuthorizationRequestCustomizers.withPkce());
-        return authorizationRequestResolver;
-    }
+	@Bean
+	OAuth2AuthorizationRequestResolver authorizationRequestResolver(
+			ClientRegistrationRepository clientRegistrationRepository) {
+		var authorizationRequestResolver = new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository,
+				"/oauth2/authorization");
+		authorizationRequestResolver
+				.setAuthorizationRequestCustomizer(OAuth2AuthorizationRequestCustomizers.withPkce());
+		return authorizationRequestResolver;
+	}
 
 }
