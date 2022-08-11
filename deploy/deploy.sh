@@ -13,7 +13,6 @@ cd $ROOT_DIR
 docker push $IMAGE_NAME
 gcloud compute addresses list --format json | jq '.[].name' -r | grep $RESERVED_IP_NAME || gcloud compute addresses create $RESERVED_IP_NAME --global
 touch "$SECRETS_FN"
-TS_FN
 echo writing to "$SECRETS_FN "
 cat <<EOF >${SECRETS_FN}
 SPRING_R2DBC_PASSWORD=${SPRING_R2DBC_PASSWORD}
