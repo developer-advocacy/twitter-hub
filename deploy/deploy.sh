@@ -1,12 +1,19 @@
 #!/usr/bin/env bash
 set -e
 set -o pipefail
-
 export APP_NAME=twitter
 export SECRETS=${APP_NAME}-secrets
 export SECRETS_FN=$HOME/${SECRETS}
 export IMAGE_NAME=gcr.io/${PROJECT_ID}/${APP_NAME}
 export RESERVED_IP_NAME=${APP_NAME}-ip
+
+echo "-----"
+echo $RESERVED_IP_NAME
+echo $IMAGE_NAME
+echo $SECRETS_FN
+echo $APP_NAME
+echo "-----"
+
 docker rmi -f $IMAGE_NAME
 cd $ROOT_DIR
 ./mvnw -DskipTests=true spring-javaformat:apply clean package spring-boot:build-image -Dspring-boot.build-image.imageName=$IMAGE_NAME

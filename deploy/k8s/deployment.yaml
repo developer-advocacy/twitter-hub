@@ -17,7 +17,7 @@ spec:
       containers:
         - image: gcr.io/bootiful/twitter
           imagePullPolicy: Always
-          name: api
+          name: twitter
           env:
             - name: LANG
               value: "en_US.UTF-8"
