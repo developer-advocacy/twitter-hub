@@ -101,10 +101,6 @@ spec:
                 secretKeyRef:
                   name: twitter-secrets
                   key: TWITTER_ENCRYPTION_SALT
-#            - name: BLOG_RESET_ON_REBUILD
-#              value: "true"
-#            - name: BLOG_API_SERVER_URI
-#              value: "https://api.joshlong.com"
           readinessProbe:
             httpGet:
               port: 8080

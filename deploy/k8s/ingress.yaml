@@ -1,4 +1,4 @@
-apiVersion: networking.k8s.io/v1beta1
+apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   annotations:
@@ -11,6 +11,17 @@ spec:
     - host: twitter.developeradvocacy.services
       http:
         paths:
-          - backend:
-              serviceName: twitter
-              servicePort: 80
+          - pathType: Prefix
+            path: "/"
+            backend:
+              service:
+                name: twitter
+                port:
+                  number: 80
+
+#    - host: twitter.developeradvocacy.services
+#      http:
+#        paths:
+#          - backend:
+#              serviceName: twitter
+#              servicePort: 80
