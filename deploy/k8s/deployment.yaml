@@ -121,6 +121,6 @@ spec:
                   key: TWITTER_ENCRYPTION_SALT
           resources:
             limits:
-              memory: "3Gi"
+              memory: "1Gi"
             requests:
-              memory: "3Gi"
+              memory: "1Gi"
