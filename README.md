@@ -117,24 +117,10 @@ And that in turn assumes that `twitter-requests` is the name of the exchange you
 * Apparently it's also possible [to use OAuth 1.0](https://developer.twitter.com/en/docs/authentication/oauth-1-0a), but uh.. why? 
 * The [API endpoint to post Tweets](https://developer.twitter.com/en/docs/twitter-api/tweets/manage-tweets/api-reference/post-tweets)
 
+## Inspecting it 
 
-## Notes from RW 
+This application runs on the `joshlong-dot-com` Kubernetes cluster. You can login to that cluster and then use the following command to inspect the running objects: 
 
- 
-
-In regards to the app...seems like it isn't anything you are demoing so if it works it works
-best of luck
-i'll reply to your other questions:
-Logout can be doing by accessing the LogoutHandler's and passing in the HttpServletRequest,HTtpServletResponse or just invoking POST /logout with a valid CSRF token. The app I deployed has a default endpoint GET /logout (Spring Security has default logout page just like default log in page) that renders a log out form for you
-Logout requires the HttpServletRequest/HttpServletResponse to ensure that they are cleaned up
-HttpServletRequest (Java EE 6 )
-docs.oracle.com
-You can also use https://docs.oracle.com/javaee/6/api/javax/servlet/http/HttpServletRequest.html#logout()
-Because Spring Security overrides the Servlet API to invoke the LogoutHandler instances
-> also, in your example, why are `OAuth2AuthorizationRequestResolver` and `webClient` `static`?
-
-A habit I've developed because it helps avoid circular bean references.
-Typically you would obtain the token in the OAuth2AuthorizationClient
-If you are wanting to persist the credentials implement OAuth2AuthorizedClientRepository
-
- 
+```shell
+k get deployments/twitter ingress/twitter-ingress ManagedCertificate/twitter-certificate  service/twitter
+```
