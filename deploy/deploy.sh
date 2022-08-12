@@ -14,7 +14,8 @@ echo $SECRETS_FN
 echo $APP_NAME
 echo "-----"
 
-docker rmi -f $IMAGE_NAME
+docker rmi -f $IMAGE_NAME || echo "couldn't delete the old image, $IMAGE_NAME. It doesn't exist."
+
 cd $ROOT_DIR
 ./mvnw -DskipTests=true spring-javaformat:apply clean package spring-boot:build-image -Dspring-boot.build-image.imageName=$IMAGE_NAME
 docker push $IMAGE_NAME
@@ -43,4 +44,3 @@ kubectl delete secrets $SECRETS || echo "no secrets to delete."
 kubectl create secret generic $SECRETS --from-env-file "$SECRETS_FN"
 kubectl delete -f "$ROOT_DIR"/deploy/k8s/deployment.yaml || echo "couldn't delete the deployment as there was nothing deployed."
 kubectl apply -f "$ROOT_DIR"/deploy/k8s
-
