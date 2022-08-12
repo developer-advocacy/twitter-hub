@@ -8,7 +8,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.boot.availability.AvailabilityChangeEvent;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -45,6 +47,12 @@ public class Application {
 	@Bean
 	ApplicationRunner applicationRunner() {
 		return args -> System.getenv().forEach((k, v) -> log.info(k + "=" + v));
+	}
+
+	@Bean
+	ApplicationListener<AvailabilityChangeEvent<?>> availabilityChangeEventApplicationListener() {
+		return event -> log.info("got an AvailabilityChangeEvent: " + event.getResolvableType().toString() + " : "
+				+ event.getState().toString());
 	}
 
 	@Bean
