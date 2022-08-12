@@ -7,14 +7,30 @@ metadata:
     kubernetes.io/ingress.global-static-ip-name: "twitter-ip"
   name: twitter-ingress
 spec:
-  rules:
-    - host: twitter.developeradvocacy.services
-      http:
-        paths:
-          - pathType: Prefix
-            path: "/"
-            backend:
-              service:
-                name: twitter
-                port:
-                  number: 80
+  defaultBackend:
+    service:
+      name: twitter
+      port:
+        number: 80
+#  rules:
+#    - http:
+#        paths:
+#          - path: /testpath
+#            pathType: ImplementationSpecific
+#            backend:
+#              service:
+#                name: test
+#                port:
+#                  number: 80
+#spec:
+#  rules:
+#    - host: twitter.developeradvocacy.services
+#      http:
+#        paths:
+#          - pathType: ImplementationSpecific
+#            path: "/"
+#            backend:
+#              service:
+#                name: twitter
+#                port:
+#                  number: 80
