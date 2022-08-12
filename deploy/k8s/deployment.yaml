@@ -15,8 +15,8 @@ spec:
         app: twitter
     spec:
       containers:
-#        - image: gcr.io/bootiful/twitter
-        - image: us-docker.pkg.dev/google-samples/containers/gke/hello-app:1.0
+#        - image: us-docker.pkg.dev/google-samples/containers/gke/hello-app:1.0
+        - image: gcr.io/bootiful/twitter
           imagePullPolicy: Always
           name: twitter
           ports:
