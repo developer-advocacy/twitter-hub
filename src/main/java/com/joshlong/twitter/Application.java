@@ -25,7 +25,12 @@ import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequest
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizedClientRepository;
 import org.springframework.security.web.DefaultSecurityFilterChain;
+import org.springframework.stereotype.Controller;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.reactive.function.client.WebClient;
+
+import java.util.Map;
 
 /**
  * @author Josh Long
@@ -35,34 +40,44 @@ import org.springframework.web.reactive.function.client.WebClient;
 @SpringBootApplication
 public class Application {
 
-	public static void main(String[] args) {
-		SpringApplication.run(Application.class, args);
-	}
+    public static void main(String[] args) {
+        SpringApplication.run(Application.class, args);
+    }
 
-	@Bean
-	WebClient webClient(WebClient.Builder webClient) {
-		return webClient.build();
-	}
+    @Bean
+    WebClient webClient(WebClient.Builder webClient) {
+        return webClient.build();
+    }
 
-	@Bean
-	ApplicationRunner applicationRunner() {
-		return args -> System.getenv().forEach((k, v) -> log.info(k + "=" + v));
-	}
+    @Bean
+    ApplicationRunner applicationRunner() {
+        return args -> System.getenv().forEach((k, v) -> log.info(k + "=" + v));
+    }
 
-	@Bean
-	ApplicationListener<AvailabilityChangeEvent<?>> availabilityChangeEventApplicationListener() {
-		return event -> log.info("got an AvailabilityChangeEvent: " + event.getResolvableType().toString() + " : "
-				+ event.getState().toString());
-	}
+    @Bean
+    ApplicationListener<AvailabilityChangeEvent<?>> availabilityChangeEventApplicationListener() {
+        return event -> log.info("got an AvailabilityChangeEvent: " + event.getResolvableType().toString() + " : "
+                + event.getState().toString());
+    }
 
-	@Bean
-	TwitterApiIntegration integration(
-			@Value("${spring.security.oauth2.client.registration.twitter.client-id}") String clientId,
-			@Value("${spring.security.oauth2.client.registration.twitter.client-secret}") String clientSecret,
-			WebClient http, ClientService clientService, ObjectMapper om, TwitterRegistrationService registrations) {
-		return new TwitterApiIntegration(clientId, clientSecret, http, clientService, registrations, om);
-	}
+    @Bean
+    TwitterApiIntegration integration(
+            @Value("${spring.security.oauth2.client.registration.twitter.client-id}") String clientId,
+            @Value("${spring.security.oauth2.client.registration.twitter.client-secret}") String clientSecret,
+            WebClient http, ClientService clientService, ObjectMapper om, TwitterRegistrationService registrations) {
+        return new TwitterApiIntegration(clientId, clientSecret, http, clientService, registrations, om);
+    }
 
+}
+
+@Controller
+@ResponseBody
+class DefaultHelloController {
+
+    @GetMapping("/")
+    Map<String, String> hello() {
+        return Map.of("message", "Hello, world!");
+    }
 }
 
 /**
@@ -73,39 +88,40 @@ public class Application {
 @EnableWebSecurity
 class SecurityConfiguration {
 
-	@Bean
-	TextEncryptor encryptor(TwitterProperties properties) {
-		return Encryptors.text(properties.encryption().password(), properties.encryption().salt());
-	}
+    @Bean
+    TextEncryptor encryptor(TwitterProperties properties) {
+        return Encryptors.text(properties.encryption().password(), properties.encryption().salt());
+    }
 
-	@Bean
-	PasswordEncoder passwordEncoder() {
-		return PasswordEncoderFactories.createDelegatingPasswordEncoder();
-	}
+    @Bean
+    PasswordEncoder passwordEncoder() {
+        return PasswordEncoderFactories.createDelegatingPasswordEncoder();
+    }
 
-	@Bean
-	DefaultSecurityFilterChain springSecurity(HttpSecurity http, //
-			OAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepository, //
-			OAuth2AuthorizationRequestResolver authorizationResolver) throws Exception {
-		http//
-				.authorizeHttpRequests(requests -> requests //
-						.mvcMatchers("/actuator/*").permitAll()//
-						.anyRequest().authenticated()//
-				)//
-				.oauth2Login(oauth2 -> oauth2.authorizedClientRepository(oAuth2AuthorizedClientRepository)
-						.authorizationEndpoint(
-								authorization -> authorization.authorizationRequestResolver(authorizationResolver)));
-		return http.build();
-	}
+    @Bean
+    DefaultSecurityFilterChain springSecurity(HttpSecurity http, //
+                                              OAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepository, //
+                                              OAuth2AuthorizationRequestResolver authorizationResolver) throws Exception {
+        http//
+                .authorizeHttpRequests(requests -> requests //
+                        .mvcMatchers("/actuator/*").permitAll()//
+                        .mvcMatchers("/").permitAll()//
+                        .anyRequest().authenticated()//
+                )//
+                .oauth2Login(oauth2 -> oauth2.authorizedClientRepository(oAuth2AuthorizedClientRepository)
+                        .authorizationEndpoint(
+                                authorization -> authorization.authorizationRequestResolver(authorizationResolver)));
+        return http.build();
+    }
 
-	@Bean
-	OAuth2AuthorizationRequestResolver authorizationRequestResolver(
-			ClientRegistrationRepository clientRegistrationRepository) {
-		var authorizationRequestResolver = new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository,
-				"/oauth2/authorization");
-		authorizationRequestResolver
-				.setAuthorizationRequestCustomizer(OAuth2AuthorizationRequestCustomizers.withPkce());
-		return authorizationRequestResolver;
-	}
+    @Bean
+    OAuth2AuthorizationRequestResolver authorizationRequestResolver(
+            ClientRegistrationRepository clientRegistrationRepository) {
+        var authorizationRequestResolver = new DefaultOAuth2AuthorizationRequestResolver(clientRegistrationRepository,
+                "/oauth2/authorization");
+        authorizationRequestResolver
+                .setAuthorizationRequestCustomizer(OAuth2AuthorizationRequestCustomizers.withPkce());
+        return authorizationRequestResolver;
+    }
 
 }
