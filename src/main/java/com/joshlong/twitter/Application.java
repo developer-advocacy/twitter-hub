@@ -80,9 +80,8 @@ class SecurityConfiguration {
 			OAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepository, //
 			OAuth2AuthorizationRequestResolver authorizationResolver) throws Exception {
 		http//
-				.authorizeHttpRequests(requests -> requests.mvcMatchers("/send").permitAll() // todo
-						// remove
-						// this
+				.authorizeHttpRequests(requests -> requests //
+						.mvcMatchers("/actuator/*").permitAll() // todo remove this
 						.anyRequest().authenticated())//
 				.oauth2Login(oauth2 -> oauth2.authorizedClientRepository(oAuth2AuthorizedClientRepository)
 						.authorizationEndpoint(
