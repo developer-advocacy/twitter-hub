@@ -18,10 +18,3 @@ spec:
                 name: twitter
                 port:
                   number: 80
-
-#    - host: twitter.developeradvocacy.services
-#      http:
-#        paths:
-#          - backend:
-#              serviceName: twitter
-#              servicePort: 80
