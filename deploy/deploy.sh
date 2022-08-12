@@ -14,6 +14,7 @@ echo $SECRETS_FN
 echo $APP_NAME
 echo "-----"
 
+
 # docker rmi -f $IMAGE_NAME || echo "couldn't delete the old image, $IMAGE_NAME. It doesn't exist."
 
 cd $ROOT_DIR
