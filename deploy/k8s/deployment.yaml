@@ -16,12 +16,10 @@ spec:
     spec:
       containers:
         - image: gcr.io/bootiful/twitter
-#        - image: us-docker.pkg.dev/google-samples/containers/gke/hello-app:1.0
           imagePullPolicy: Always
           name: twitter
           ports:
             - containerPort: 8080
-
           readinessProbe:
             timeoutSeconds: 30
             initialDelaySeconds: 30
@@ -34,7 +32,6 @@ spec:
             httpGet:
               port: 8080
               path: /actuator/health/liveness
-
           env:
             - name: LANG
               value: "en_US.UTF-8"
@@ -118,7 +115,6 @@ spec:
                 secretKeyRef:
                   name: twitter-secrets
                   key: TWITTER_ENCRYPTION_SALT
-
           resources:
             limits:
               memory: "2Gi"
