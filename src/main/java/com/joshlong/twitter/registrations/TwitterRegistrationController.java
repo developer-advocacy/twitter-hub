@@ -17,7 +17,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 class TwitterRegistrationController {
 
-	@GetMapping("/")
+	@GetMapping("/register")
 	ModelAndView register(@RegisteredOAuth2AuthorizedClient OAuth2AuthorizedClient twitter, Principal principal) {
 		return new ModelAndView("registration", Map.of("username", SecurityUtils.extractTwitterUsername(principal)));
 	}
