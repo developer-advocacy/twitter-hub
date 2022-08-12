@@ -81,7 +81,9 @@ class SecurityConfiguration {
 			OAuth2AuthorizationRequestResolver authorizationResolver) throws Exception {
 		http//
 				.authorizeHttpRequests(requests -> requests //
-						.mvcMatchers("/actuator/*").permitAll().anyRequest().authenticated())//
+						.mvcMatchers("/actuator/*").permitAll()//
+						.anyRequest().authenticated()//
+				)//
 				.oauth2Login(oauth2 -> oauth2.authorizedClientRepository(oAuth2AuthorizedClientRepository)
 						.authorizationEndpoint(
 								authorization -> authorization.authorizationRequestResolver(authorizationResolver)));
