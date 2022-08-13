@@ -17,7 +17,7 @@ spec:
       containers:
         - image: gcr.io/bootiful/joshlong-com-api
           imagePullPolicy: Always
-          name: twitter
+          name: twitter-container
 #        - image: gcr.io/bootiful/twitter
 #          #        - image: us-docker.pkg.dev/google-samples/containers/gke/hello-app:1.0
 #          imagePullPolicy: Always
