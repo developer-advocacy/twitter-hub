@@ -147,8 +147,9 @@ class TwitterApiIntegration {
 				.body(Mono.just(map), this.ptr) //
 				.headers(h -> h.setBearerAuth(accessToken)) //
 				.retrieve()//
-				.bodyToMono(String.class)//
-				.mapNotNull(this::from).doOnError(exception -> log.error("got an error posting!", exception));
+				.bodyToMono(String.class) //
+				.mapNotNull(this::from) //
+				.doOnError(exception -> log.error("got an error posting!", exception));
 	}
 
 }
@@ -171,7 +172,6 @@ class StreamConfiguration {
 					.sendLiveTweet(payload.clientId(), payload.clientSecret(), payload.twitterUsername(),
 							payload.jsonRequest());
 			return reply.then();
-
 		});
 	}
 

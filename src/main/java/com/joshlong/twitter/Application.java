@@ -5,7 +5,6 @@ import com.joshlong.twitter.clients.ClientService;
 import com.joshlong.twitter.registrations.TwitterRegistrationService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.availability.AvailabilityChangeEvent;
@@ -31,6 +30,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ResponseBody;
 import org.springframework.web.reactive.function.client.WebClient;
+import org.springframework.web.server.WebFilter;
 
 import java.util.Map;
 
@@ -59,6 +59,14 @@ public class Application {
 	@EventListener
 	public void readiness(AvailabilityChangeEvent<ReadinessState> live) {
 		log.info("readiness: " + live.toString());
+	}
+
+	@Bean
+	WebFilter loggingWebFilter() {
+		return (exchange, chain) -> {
+			exchange.getResponse().getHeaders().forEach((k, v) -> log.info("header: " + k + "=" + v));
+			return chain.filter(exchange);
+		};
 	}
 
 	@Bean
