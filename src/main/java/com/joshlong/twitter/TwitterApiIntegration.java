@@ -113,13 +113,13 @@ class TwitterApiIntegration {
 					var tooOld = now.getTime() - freshnessPeriodIs1H15M;
 					var fresh = tr.lastUpdated().getTime() > tooOld;
 					if (fresh) { // if it was updated in the last two hours, use it.
-						log.debug("the access token for @" + tr.username() + " was created recently ("
+						log.info ("the access token for @" + tr.username() + " was created recently ("
 								+ tr.lastUpdated() + "). Using as-is");
 						return Mono.just(tr);
 					}
 					else {
 						// otherwise, refresh it
-						log.debug("the access token for @" + tr.username() + " was not created recently ("
+						log.info("the access token for @" + tr.username() + " was not created recently ("
 								+ tr.lastUpdated() + "). Refreshing");
 						return refreshAccessToken(tr.username(), tr.refreshToken());
 					}
@@ -128,7 +128,7 @@ class TwitterApiIntegration {
 		return this.clients //
 				.authenticate(clientId, clientSecret)//
 				.flatMap(c -> freshTR)//
-				.doOnNext(registration -> log.info("got a valid " + TwitterRegistration.class.getName()
+				.doOnNext(registration -> log.info("got a valid " + TwitterRegistration.class.getSimpleName()
 						+ " with a fresh access code for @" + registration.username() + "."))//
 				.flatMap(tr -> post(jsonRequest, tr.accessToken()))//
 				.doOnNext(pt -> log.info("posted tweet: " + pt.toString()));
@@ -150,7 +150,7 @@ class TwitterApiIntegration {
 
 	@SneakyThrows
 	private Mono<TweetResponse> post(String jsonRequest, String accessToken) {
-		log.info("going to try posting with access token [" + accessToken.substring(0, 10) + "..."
+		log.info("going to try posting with access token [" +  StringUtils.securityMask( accessToken )
 				+ "] and the following JSON body: " + jsonRequest);
 		var map = this.objectMapper.readValue(jsonRequest, this.tr);
 		return this.http.post() //

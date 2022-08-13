@@ -28,20 +28,16 @@ class SqlScheduledTweetService implements ScheduledTweetService {
 
 	private final DatabaseClient dbc;
 
-	private final Function<Map<String, Object>, ScheduledTweet> scheduledTweetMapper = new Function<>() {
-
-		@Override
-		public ScheduledTweet apply(Map<String, Object> stringObjectMap) {
-			return new ScheduledTweet((String) stringObjectMap.get("username"),
-					(String) stringObjectMap.get("json_request"),
-					dateFromLocalDateTime(((LocalDateTime) stringObjectMap.get("scheduled"))),
-					(String) stringObjectMap.get("client_id"), (String) stringObjectMap.get("client_secret"),
-					stringObjectMap.containsKey("date")
-							? dateFromLocalDateTime((LocalDateTime) stringObjectMap.get("sent")) : null,
-					(String) stringObjectMap.get("id"));
-		}
-
-	};
+	private final Function<Map<String, Object>, ScheduledTweet> scheduledTweetMapper = //
+			record -> new ScheduledTweet(//
+					(String) record.get("username"), //
+					(String) record.get("json_request"), //
+					dateFromLocalDateTime(((LocalDateTime) record.get("scheduled"))), //
+					(String) record.get("client_id"), //
+					(String) record.get("client_secret"), //
+					record.containsKey("date") ? dateFromLocalDateTime((LocalDateTime) record.get("sent")) : null, //
+					(String) record.get("id") //
+			);
 
 	@Override
 	public Flux<ScheduledTweet> due() {
