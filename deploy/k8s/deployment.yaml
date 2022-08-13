@@ -15,7 +15,8 @@ spec:
         app: twitter
     spec:
       containers:
-        - image: gcr.io/bootiful/joshlong-com-api
+        - image: gcr.io/bootiful/twitter
+#        - image: gcr.io/bootiful/joshlong-com-api
           imagePullPolicy: Always
           name: twitter-container
 #        - image: gcr.io/bootiful/twitter
