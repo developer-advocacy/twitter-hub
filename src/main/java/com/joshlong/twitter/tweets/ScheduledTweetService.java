@@ -7,10 +7,11 @@ import java.util.Date;
 
 public interface ScheduledTweetService {
 
-	Flux<ScheduledTweet> unscheduled();
+	Flux<ScheduledTweet> due();
 
 	Mono<ScheduledTweet> send(ScheduledTweet tweet, Date date);
 
-	Mono<ScheduledTweet> schedule(String username, String jsonRequest, Date scheduled, String clientId, Date sent);
+	Mono<ScheduledTweet> schedule(String username, String jsonRequest, Date scheduled, String clientId,
+			String clientSecret, Date sent);
 
 }

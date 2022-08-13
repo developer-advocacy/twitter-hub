@@ -58,14 +58,11 @@ class SqlClientService implements ClientService {
 				.bind("cid", clientId)//
 				.fetch()//
 				.all()//
-				// .doOnSubscribe(s -> log.info("trying to authenticate [" + clientId + "]
-				// with secret [" + secret + "]"))
 				.map(stringObjectMap -> {
 					log.debug("result: " + stringObjectMap);
 					return clientFunction.apply(stringObjectMap);
 				})//
 				.filter(c -> this.passwordEncoder.matches(secret, c.secret())) //
-				// .doOnNext(c -> log.info("got a client [" + c + "]")) //
 				.singleOrEmpty()//
 				.switchIfEmpty(Mono.error(
 						new IllegalStateException("could not find a valid client of the name '" + clientId + "'!")));

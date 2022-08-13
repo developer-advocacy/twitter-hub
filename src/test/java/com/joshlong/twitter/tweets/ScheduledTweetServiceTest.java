@@ -49,16 +49,19 @@ class ScheduledTweetServiceTest {
 				{ "text" : "Hi, Spring fans!" }
 				""";
 		var tomorrow = Date.from(Instant.now().plus(1, ChronoUnit.DAYS));
-		var scheduled = this.scs.schedule("@TEST_TWITTER_USERNAME", json, tomorrow, "test_client", null);
-		var unscheduled = this.scs.unscheduled();
+		var scheduled = this.scs.schedule("@TEST_TWITTER_USERNAME", json, tomorrow, "test_client", "test_client_secret",
+				null);
+		var unscheduled = this.scs.due();
 		var match = unscheduled.filter(st -> st.scheduled().equals(tomorrow) && st.clientId().equals("test_client")
-				&& st.username().equals("test_twitter_username") && st.jsonRequest().equals(json.trim()));
+				&& st.clientSecret().equals("test_client_secret") && st.username().equals("test_twitter_username")
+				&& st.jsonRequest().equals(json.trim()));
 		StepVerifier.create(scheduled.thenMany(match))//
 				.expectNextCount(1)//
 				.verifyComplete();
 		var unscheduledAfterSending = this.scs
-				.send(new ScheduledTweet("@TEST_TWITTER_USernAME", json, tomorrow, "test_client"), new Date())
-				.thenMany(this.scs.unscheduled());
+				.send(new ScheduledTweet("@TEST_TWITTER_USernAME", json, tomorrow, "test_client", null, null, "242232"),
+						new Date())
+				.thenMany(this.scs.due());
 		StepVerifier.create(unscheduledAfterSending).expectComplete().verify();
 	}
 

@@ -1,10 +1,14 @@
 package com.joshlong.twitter;
 
 import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.joshlong.twitter.clients.ClientService;
 import com.joshlong.twitter.registrations.TwitterRegistration;
 import com.joshlong.twitter.registrations.TwitterRegistrationService;
+import com.joshlong.twitter.tweets.ScheduledTweetService;
+import com.joshlong.twitter.utils.DateUtils;
+import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Bean;
@@ -12,6 +16,9 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
 import org.springframework.messaging.Message;
+import org.springframework.scheduling.annotation.EnableScheduling;
+import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.transaction.reactive.TransactionalOperator;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
@@ -19,6 +26,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.Date;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
 @Slf4j
@@ -95,7 +103,7 @@ class TwitterApiIntegration {
 		log.debug("trying to send the tweet: clientId: [" + clientId + "], clientSecret: [" + clientSecret
 				+ "], twitterUsername: [" + twitterUsername + "], json: [" + jsonRequest + "]");
 		var now = new Date();
-		var freshnessPeriodIs1H15M = 115 * 1000 * 60;
+		var freshnessPeriodIs1H15M = 30 * 1000 * 60;
 		var freshTR = registrations //
 				.byUsername(twitterUsername) //
 				.doOnNext(tr -> log.debug("authenticated " + tr.username())) //
@@ -114,12 +122,11 @@ class TwitterApiIntegration {
 				.doOnError(e -> log.error("oops!", e));
 		return this.clients //
 				.authenticate(clientId, clientSecret)//
-				.doOnNext(client -> log.debug("got a valid client: [" + client.clientId() + "]")) //
 				.flatMap(c -> freshTR)//
 				.doOnNext(registration -> log.debug(
 						"got a valid registration with a fresh access code for @" + registration.username() + "."))//
 				.flatMap(tr -> post(jsonRequest, tr.accessToken()))//
-				.doOnNext(pt -> log.debug("posted tweet: " + pt.toString()));
+				.doOnNext(pt -> log.info("posted tweet: " + pt.toString()));
 
 	}
 
@@ -154,25 +161,56 @@ class TwitterApiIntegration {
 
 }
 
-record TweetRequest(String clientId, String clientSecret, String twitterUsername, String jsonRequest) {
-}
-
-record TweetResponse(String id, String text) {
-}
-
 @Slf4j
 @Configuration
-class StreamConfiguration {
+@EnableScheduling
+@RequiredArgsConstructor
+class SchedulerConfiguration {
+
+	private final TwitterApiIntegration integration;
+
+	private final ScheduledTweetService service;
+
+	private final TransactionalOperator operator;
+
+	@Scheduled(timeUnit = TimeUnit.MINUTES, fixedDelay = 1)
+	public void runPeriodically() {
+		this.service //
+				.due() //
+				.doOnNext(st -> log.debug("new scheduled tweet: " + st)) //
+				.flatMap(st -> this.operator.transactional(//
+						this.integration//
+								.sendLiveTweet(st.clientId(), st.clientSecret(), st.username(), st.jsonRequest())//
+								.flatMap(x -> Mono.just(st))//
+								.flatMap(s -> this.service.send(s, new Date())) //
+				))//
+				.subscribe(tr -> log.info("processed " + tr.toString()));
+	}
 
 	@Bean
-	Function<Flux<Message<TweetRequest>>, Flux<Void>> twitterRequests(TwitterApiIntegration integration) {
+	Function<Flux<Message<String>>, Flux<Void>> twitterRequests(ObjectMapper objectMapper,
+			ScheduledTweetService service) {
 		return sink -> sink.flatMap(message -> {
-			var payload = message.getPayload();
-			var reply = integration //
-					.sendLiveTweet(payload.clientId(), payload.clientSecret(), payload.twitterUsername(),
-							payload.jsonRequest());
-			return reply.then();
+			var payload = parseJsonIntoTweetRequest(objectMapper, message.getPayload());
+			return service
+					.schedule(payload.twitterUsername(), payload.jsonRequest(), payload.scheduled(), payload.clientId(),
+							payload.clientSecret(), null) //
+					.then();
 		});
 	}
 
+	@SneakyThrows
+	private static TweetRequest parseJsonIntoTweetRequest(ObjectMapper objectMapper, String json) {
+		var jn = objectMapper.readValue(json, JsonNode.class);
+		return new TweetRequest(jn.get("clientId").textValue(), jn.get("clientSecret").textValue(),
+				jn.get("twitterUsername").textValue(), jn.get("jsonRequest").textValue(),
+				DateUtils.readIsoDateTime(jn.get("scheduled").textValue()));
+	}
+
+}
+
+record TweetRequest(String clientId, String clientSecret, String twitterUsername, String jsonRequest, Date scheduled) {
+}
+
+record TweetResponse(String id, String text) {
 }
