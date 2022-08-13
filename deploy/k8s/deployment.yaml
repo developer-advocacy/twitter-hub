@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - image: gcr.io/bootiful/twitter
-#        - image: us-docker.pkg.dev/google-samples/containers/gke/hello-app:1.0
+          #        - image: us-docker.pkg.dev/google-samples/containers/gke/hello-app:1.0
           imagePullPolicy: Always
           name: twitter
           ports:
@@ -27,23 +27,18 @@ spec:
               port: 8080
               path: /actuator/health/readiness
             failureThreshold: 30
-            periodSeconds: 10
+            periodSeconds: 30
 
           readinessProbe:
-            periodSeconds: 40
-            timeoutSeconds: 30
-            initialDelaySeconds: 30
             httpGet:
               port: 8080
               path: /actuator/health/readiness
-          livenessProbe:
-            periodSeconds: 40
-            timeoutSeconds: 30
-            initialDelaySeconds: 30
 
+          livenessProbe:
             httpGet:
               port: 8080
               path: /actuator/health/liveness
+
           env:
             - name: LANG
               value: "en_US.UTF-8"
