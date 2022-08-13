@@ -6,8 +6,10 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.joshlong.twitter.clients.ClientService;
 import com.joshlong.twitter.registrations.TwitterRegistration;
 import com.joshlong.twitter.registrations.TwitterRegistrationService;
+import com.joshlong.twitter.tweets.ScheduledTweet;
 import com.joshlong.twitter.tweets.ScheduledTweetService;
 import com.joshlong.twitter.utils.DateUtils;
+import com.joshlong.twitter.utils.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
@@ -65,7 +67,7 @@ class TwitterApiIntegration {
 	/* package private for testing */
 	private Mono<TwitterRegistration> refreshAccessToken(String twitterUsername, String refreshToken) {
 		log.debug("the client id is [" + this.oauthClientId + "] and the refresh token is ["
-				+ refreshToken.substring(0, 10) + "..." + "]");
+				+ StringUtils.securityMask(refreshToken) + "]");
 		return this.http //
 				.post()//
 				.uri("https://api.twitter.com/2/oauth2/token")//
@@ -100,31 +102,34 @@ class TwitterApiIntegration {
 	/* package private for testing */
 	Mono<TweetResponse> sendLiveTweet(String clientId, String clientSecret, String twitterUsername, String json) {
 		var jsonRequest = json.trim();
-		log.debug("trying to send the tweet: clientId: [" + clientId + "], clientSecret: [" + clientSecret
-				+ "], twitterUsername: [" + twitterUsername + "], json: [" + jsonRequest + "]");
+		log.debug("trying to send the tweet: clientId: [" + clientId + "], clientSecret: ["
+				+ (clientSecret.length() > 5 ? clientSecret.substring(0, 5) + "..." : "...") + "], twitterUsername: ["
+				+ twitterUsername + "], json: [" + jsonRequest + "]");
 		var now = new Date();
 		var freshnessPeriodIs1H15M = 30 * 1000 * 60;
 		var freshTR = registrations //
 				.byUsername(twitterUsername) //
-				.doOnNext(tr -> log.debug("authenticated " + tr.username())) //
 				.flatMap(tr -> {//
 					var tooOld = now.getTime() - freshnessPeriodIs1H15M;
 					var fresh = tr.lastUpdated().getTime() > tooOld;
 					if (fresh) { // if it was updated in the last two hours, use it.
+						log.debug("the access token for @" + tr.username() + " was created recently ("
+								+ tr.lastUpdated() + "). Using as-is");
 						return Mono.just(tr);
 					}
 					else {
 						// otherwise, refresh it
+						log.debug("the access token for @" + tr.username() + " was not created recently ("
+								+ tr.lastUpdated() + "). Refreshing");
 						return refreshAccessToken(tr.username(), tr.refreshToken());
 					}
 				}) //
-				.doOnNext(tr -> log.debug("got a valid TwitterRegistration for " + tr.username())) //
 				.doOnError(e -> log.error("oops!", e));
 		return this.clients //
 				.authenticate(clientId, clientSecret)//
 				.flatMap(c -> freshTR)//
-				.doOnNext(registration -> log.debug(
-						"got a valid registration with a fresh access code for @" + registration.username() + "."))//
+				.doOnNext(registration -> log.info("got a valid " + TwitterRegistration.class.getName()
+						+ " with a fresh access code for @" + registration.username() + "."))//
 				.flatMap(tr -> post(jsonRequest, tr.accessToken()))//
 				.doOnNext(pt -> log.info("posted tweet: " + pt.toString()));
 
@@ -145,10 +150,9 @@ class TwitterApiIntegration {
 
 	@SneakyThrows
 	private Mono<TweetResponse> post(String jsonRequest, String accessToken) {
-		log.debug("going to try posting with access token [" + accessToken.substring(0, 10) + "..."
+		log.info("going to try posting with access token [" + accessToken.substring(0, 10) + "..."
 				+ "] and the following JSON body: " + jsonRequest);
 		var map = this.objectMapper.readValue(jsonRequest, this.tr);
-		log.debug("here is the payload :" + map.toString());
 		return this.http.post() //
 				.uri("https://api.twitter.com/2/tweets")//
 				.body(Mono.just(map), this.ptr) //
@@ -173,18 +177,23 @@ class SchedulerConfiguration {
 
 	private final TransactionalOperator operator;
 
+	private static Map<String, String> debugMap(ScheduledTweet st) {
+		return Map.of("clientId", st.clientId(), "twitter username", st.username(), "json", st.jsonRequest(),
+				"clientSecret", StringUtils.securityMask(st.clientSecret()));
+	}
+
 	@Scheduled(timeUnit = TimeUnit.MINUTES, fixedDelay = 1)
 	public void runPeriodically() {
 		this.service //
 				.due() //
-				.doOnNext(st -> log.debug("new scheduled tweet: " + st)) //
+				.doOnNext(st -> log.info("attempting to send scheduled tweet: " + debugMap(st))) //
 				.flatMap(st -> this.operator.transactional(//
 						this.integration//
 								.sendLiveTweet(st.clientId(), st.clientSecret(), st.username(), st.jsonRequest())//
 								.flatMap(x -> Mono.just(st))//
 								.flatMap(s -> this.service.send(s, new Date())) //
 				))//
-				.subscribe(tr -> log.info("processed " + tr.toString()));
+				.subscribe(st -> log.info("sent " + debugMap(st)));
 	}
 
 	@Bean

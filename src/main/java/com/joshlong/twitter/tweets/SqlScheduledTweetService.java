@@ -69,7 +69,6 @@ class SqlScheduledTweetService implements ScheduledTweetService {
 	public Mono<ScheduledTweet> schedule(String twitterUsername, String jsonRequest, Date scheduled, String clientId,
 			String clientSecret, Date sent) {
 		var id = UUID.randomUUID().toString();
-		log.debug("sent is " + (null == sent ? "null" : "not null"));
 		var minimumRunwayInMinutes = 5;
 		var username = TwitterUtils.validateUsername(twitterUsername);
 		var sql = """
@@ -101,13 +100,6 @@ class SqlScheduledTweetService implements ScheduledTweetService {
 		Assert.hasText(twitterUsername,
 				"you must provide a valid Twitter username (e.g.: @SpringTipsLive, or springtipslive)");
 		Assert.hasText(clientId, "you must provide a valid clientId matching a record in twitter_clients");
-		/*
-		 * Assert.state( scheduled != null && scheduled.after(new
-		 * Date(System.currentTimeMillis() + (60 + 1000 + minimumRunwayInMinutes))), () ->
-		 * String.format(
-		 * "you must provide a valid scheduled date that is non-null and at least %s minutes into the future"
-		 * , minimumRunwayInMinutes));
-		 */
 		var executeSpec = this.dbc//
 				.sql(sql)//
 				.bind("username", username) //
