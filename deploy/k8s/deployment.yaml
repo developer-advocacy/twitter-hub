@@ -46,20 +46,11 @@ spec:
             httpGet:
               port: 8080
               path: /actuator/health/liveness
-
           env:
-            - name: BLOG_INDEX_REBUILD_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: joshlong-com-api-secrets
-                  key: BLOG_INDEX_REBUILD_KEY
-            - name: BLOG_RESET_ON_REBUILD
-              value: "true"
-            - name: BLOG_API_SERVER_URI
-              value: "https://api.joshlong.com"
+            - name: SPRING_PROFILES_ACTIVE
+              value: "production"
             - name: LANG
               value: "en_US.UTF-8"
-
             - name: SPRING_R2DBC_PASSWORD
               valueFrom:
                 secretKeyRef:
