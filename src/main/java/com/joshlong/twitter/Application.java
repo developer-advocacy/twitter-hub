@@ -15,8 +15,10 @@ import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.event.EventListener;
+import org.springframework.security.config.Customizer;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
 import org.springframework.security.crypto.encrypt.Encryptors;
 import org.springframework.security.crypto.encrypt.TextEncryptor;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
@@ -109,17 +111,25 @@ class SecurityConfiguration {
 	DefaultSecurityFilterChain springSecurity(HttpSecurity http, //
 			OAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepository, //
 			OAuth2AuthorizationRequestResolver authorizationResolver) throws Exception {
-		http//
-				.authorizeHttpRequests(requests -> requests //
-						.mvcMatchers("/actuator/*").permitAll()//
-						.mvcMatchers("/").permitAll()//
-						.anyRequest().authenticated()//
-				)//
-				.oauth2Login(oauth2 -> oauth2.authorizedClientRepository(oAuth2AuthorizedClientRepository)
-						.authorizationEndpoint(
-								authorization -> authorization.authorizationRequestResolver(authorizationResolver)));
-		return http.build();
+
+		return http.authorizeHttpRequests(a -> a.anyRequest().permitAll()) //
+				.csrf(AbstractHttpConfigurer::disable)//
+				.httpBasic(Customizer.withDefaults()) //
+				.build();
 	}
+
+	/*
+	 * @Bean DefaultSecurityFilterChain springSecurity(HttpSecurity http, //
+	 * OAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepository, //
+	 * OAuth2AuthorizationRequestResolver authorizationResolver) throws Exception { http//
+	 * .authorizeHttpRequests(requests -> requests //
+	 * .mvcMatchers("/actuator/*").permitAll()// .mvcMatchers("/").permitAll()//
+	 * .anyRequest().authenticated()// )// .oauth2Login(oauth2 ->
+	 * oauth2.authorizedClientRepository(oAuth2AuthorizedClientRepository)
+	 * .authorizationEndpoint( authorization ->
+	 * authorization.authorizationRequestResolver(authorizationResolver))); return
+	 * http.build(); }
+	 */
 
 	@Bean
 	OAuth2AuthorizationRequestResolver authorizationRequestResolver(
