@@ -24,9 +24,12 @@ class SqlTwitterRegistrationService implements TwitterRegistrationService {
 	private final TextEncryptor encryptor;
 
 	private final Function<Map<String, Object>, TwitterRegistration> mapTwitterRegistrationFunction = //
-			record -> new TwitterRegistration((String) record.get("username"),
-					decrypt((String) record.get("access_token")), decrypt((String) record.get("refresh_token")),
-					DateUtils.dateFromLocalDateTime((LocalDateTime) record.get("updated")));
+			record -> {
+				log.debug("going to map for " + record);
+				return new TwitterRegistration((String) record.get("username"),
+						decrypt((String) record.get("access_token")), decrypt((String) record.get("refresh_token")),
+						DateUtils.dateFromLocalDateTime((LocalDateTime) record.get("updated")));
+			};
 
 	SqlTwitterRegistrationService(DatabaseClient dbc, TextEncryptor encryptor) {
 		this.dbc = dbc;
@@ -34,7 +37,15 @@ class SqlTwitterRegistrationService implements TwitterRegistrationService {
 	}
 
 	private String decrypt(String encryptedText) {
-		return encryptor.decrypt(encryptedText);
+		try {
+			var d = this.encryptor.decrypt(encryptedText);
+			log.debug("before [" + encryptedText + "] after [" + d + "]");
+			return d;
+		} //
+		catch (Throwable e) {
+			log.error("got an error trying to decrypt " + encryptedText, e);
+		}
+		return null;
 	}
 
 	@Override
@@ -42,36 +53,36 @@ class SqlTwitterRegistrationService implements TwitterRegistrationService {
 		return this.dbc.sql("select * from twitter_accounts") //
 				.fetch() //
 				.all() //
-				.map(mapTwitterRegistrationFunction);
+				.map(this.mapTwitterRegistrationFunction);
 	}
 
 	@Override
 	public Mono<TwitterRegistration> byUsername(String username) {
 		Assert.hasText(username, "the username must not be null");
-		log.debug("trying to find a twitterRegistration for username @" + username);
+		log.debug("trying to find a TwitterRegistration for username @" + username);
 		return this.dbc//
 				.sql("select * from twitter_accounts where username = :un") //
 				.bind("un", TwitterUtils.validateUsername(username)) //
 				.fetch()//
 				.one()//
-				.map(mapTwitterRegistrationFunction)//
+				.map(this.mapTwitterRegistrationFunction)//
 				.switchIfEmpty(Mono.error(new IllegalStateException("can't find one!")))
 				.doOnNext(tr -> log.debug("found: " + tr.toString()))//
-				.doOnError(e -> log.error("can't find a twitter_account by username [" + username + "]", e));
+				.doOnError(e -> log.error("can't find a twitter_account with username @" + username + ".", e));
 	}
 
 	@Override
 	public Mono<TwitterRegistration> register(String username, String accessToken, String refreshToken) {
 		var sql = """
-				insert into twitter_accounts(username, access_token, refresh_token, created, updated)
-				        values ( :username, :at, :rt , :created, :updated)
-				    on conflict on constraint twitter_accounts_pkey
-				    do update SET
-				        access_token = excluded.access_token,
-				        refresh_token = excluded.refresh_token ,
-				        updated = excluded.updated
+				insert into twitter_accounts(username, access_token, refresh_token, created, updated) values( :username, :at, :rt , :created, :updated )
+				on conflict on constraint twitter_accounts_pkey
+				do update SET
+				    access_token = excluded.access_token,
+				    refresh_token = excluded.refresh_token ,
+				    updated = excluded.updated
 				""";
 		var tr = new TwitterRegistration(TwitterUtils.validateUsername(username), accessToken, refreshToken);
+		log.debug("trying to register (" + tr + ")");
 		var ts = new Date();
 		return this.dbc.sql(sql)//
 				.bind("username", tr.username())//
@@ -81,7 +92,7 @@ class SqlTwitterRegistrationService implements TwitterRegistrationService {
 				.bind("updated", ts)//
 				.fetch() //
 				.rowsUpdated() //
-				.map(count -> tr);
+				.flatMap(count -> this.byUsername(tr.username()));
 	}
 
 }

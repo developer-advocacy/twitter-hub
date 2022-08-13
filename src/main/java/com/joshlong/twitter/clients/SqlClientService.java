@@ -1,5 +1,6 @@
 package com.joshlong.twitter.clients;
 
+import com.joshlong.twitter.utils.StringUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.r2dbc.core.DatabaseClient;
@@ -20,10 +21,8 @@ class SqlClientService implements ClientService {
 
 	private final PasswordEncoder passwordEncoder;
 
-	private final Function<Map<String, Object>, Client> clientFunction = record -> {
-		log.debug("processing record " + record);
-		return new Client((String) record.get("client_id"), (String) record.get("secret"));
-	};
+	private final Function<Map<String, Object>, Client> clientFunction = //
+			record -> new Client((String) record.get("client_id"), (String) record.get("secret"));
 
 	@Override
 	public Mono<Client> register(String clientId, String rawSecret) {
@@ -43,7 +42,6 @@ class SqlClientService implements ClientService {
 
 	@Override
 	public Flux<Client> clients() {
-
 		return this.dbc.sql("select  * from twitter_clients") //
 				.fetch() //
 				.all() //
@@ -52,20 +50,18 @@ class SqlClientService implements ClientService {
 
 	@Override
 	public Mono<Client> authenticate(String clientId, String secret) {
-		log.debug("trying to authenticate [" + clientId + "] and [" + secret + "]");
+		log.debug("trying to authenticate " + Client.class.getSimpleName() + " [" + clientId + "] and ["
+				+ StringUtils.securityMask(secret) + "]");
 		return this.dbc //
 				.sql("select * from twitter_clients where client_id = :cid  ")//
 				.bind("cid", clientId)//
 				.fetch()//
 				.all()//
-				.map(stringObjectMap -> {
-					log.debug("result: " + stringObjectMap);
-					return clientFunction.apply(stringObjectMap);
-				})//
+				.map(this.clientFunction)//
 				.filter(c -> this.passwordEncoder.matches(secret, c.secret())) //
 				.singleOrEmpty()//
 				.switchIfEmpty(Mono.error(
-						new IllegalStateException("could not find a valid client of the name '" + clientId + "'!")));
+						new IllegalStateException("could not find a valid client of the name [" + clientId + "]!")));
 
 	}
 

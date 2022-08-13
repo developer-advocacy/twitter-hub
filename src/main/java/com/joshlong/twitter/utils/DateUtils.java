@@ -1,11 +1,9 @@
 package com.joshlong.twitter.utils;
 
 import java.time.Instant;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.time.temporal.TemporalAccessor;
 import java.util.Date;
 
 public abstract class DateUtils {

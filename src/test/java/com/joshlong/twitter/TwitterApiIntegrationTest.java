@@ -1,8 +1,8 @@
 package com.joshlong.twitter;
 
 import com.joshlong.twitter.clients.ClientService;
+import com.joshlong.twitter.registrations.TwitterRegistrationService;
 import lombok.extern.slf4j.Slf4j;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -24,33 +24,44 @@ class TwitterApiIntegrationTest {
 
 	private final ClientService clients;
 
+	private final TwitterRegistrationService registrations;
+
 	//
 	private final String secret = "1234";
 
 	private final String clientId = "test-client";
 
-	TwitterApiIntegrationTest(@Autowired StreamBridge streamBridge, @Autowired ClientService clients,
+	TwitterApiIntegrationTest(@Autowired TwitterRegistrationService registrationService,
+			@Autowired StreamBridge streamBridge, @Autowired ClientService clients,
 			@Autowired TwitterApiIntegration integration) {
 		this.integration = integration;
 		this.clients = clients;
 		this.streamBridge = streamBridge;
+		this.registrations = registrationService;
 	}
 
-	@BeforeEach
-	void before() {
+	@Test
+	void inAndOut() {
+		var username = "springbuxman";
+		var accessToken = "accessToken";
+		var refreshToken = "refreshToken";
+		var registered = this.registrations.register(username, accessToken, refreshToken);
+		StepVerifier
+				.create(registered).expectNextMatches(tr -> tr.username().equals(username)
+						&& tr.accessToken().equals(accessToken) && tr.refreshToken().equals(refreshToken))
+				.verifyComplete();
+	}
+
+	@Test
+	void sendLiveTweet() {
 		StepVerifier //
 				.create(this.clients.register(this.clientId, this.secret)
 						.then(this.clients.authenticate(this.clientId, this.secret)))//
 				.expectNextMatches(c -> c.clientId().equals(this.clientId)) //
 				.verifyComplete();
-	}
-
-	@Test
-	void directInvocation() {
 		var json = String.format("""
-				{ "text" : "function at %s" }
+				{ "text" : "sending a tweet from a unit test at %s" }
 				""", Instant.now().toString());
-		log.debug("sending " + json);
 		var live = this.integration //
 				.sendLiveTweet(this.clientId, this.secret, "bpmpass", json) //
 				.switchIfEmpty(Mono.error(new IllegalStateException("couldn't send the tweet!")))//
