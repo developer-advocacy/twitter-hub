@@ -17,7 +17,7 @@ spec:
       containers:
         - image: gcr.io/bootiful/joshlong-com-api
           imagePullPolicy: Always
-          name: api
+          name: twitter
 #        - image: gcr.io/bootiful/twitter
 #          #        - image: us-docker.pkg.dev/google-samples/containers/gke/hello-app:1.0
 #          imagePullPolicy: Always
@@ -26,18 +26,22 @@ spec:
 #            - containerPort: 8080
 
           startupProbe:
+            failureThreshold: 60
+            periodSeconds: 60
             httpGet:
               port: 8080
               path: /actuator/health/readiness
-            failureThreshold: 30
-            periodSeconds: 30
 
           readinessProbe:
+            failureThreshold: 60
+            periodSeconds: 60
             httpGet:
               port: 8080
               path: /actuator/health/readiness
 
           livenessProbe:
+            failureThreshold: 60
+            periodSeconds: 60
             httpGet:
               port: 8080
               path: /actuator/health/liveness
