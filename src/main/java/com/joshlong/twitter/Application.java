@@ -51,11 +51,6 @@ public class Application {
 		return webClient.build();
 	}
 
-	@Bean
-	ApplicationRunner environmentLogger() {
-		return args -> System.getenv().forEach((k, v) -> log.info(k + "=" + v));
-	}
-
 	@EventListener
 	public void liveness(AvailabilityChangeEvent<LivenessState> live) {
 		log.info("liveness: " + live.toString());
