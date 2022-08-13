@@ -114,7 +114,7 @@ class SecurityConfiguration {
 		http//
 				.authorizeHttpRequests(requests -> requests //
 						.mvcMatchers("/register").authenticated() //
-						.anyRequest().permitAll())///
+						.anyRequest().permitAll())//
 				.oauth2Login(oauth2 -> oauth2.authorizedClientRepository(oAuth2AuthorizedClientRepository)
 						.authorizationEndpoint(
 								authorization -> authorization.authorizationRequestResolver(authorizationResolver)));
