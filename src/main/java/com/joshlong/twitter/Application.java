@@ -111,25 +111,15 @@ class SecurityConfiguration {
 	DefaultSecurityFilterChain springSecurity(HttpSecurity http, //
 			OAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepository, //
 			OAuth2AuthorizationRequestResolver authorizationResolver) throws Exception {
-
-		return http.authorizeHttpRequests(a -> a.anyRequest().permitAll()) //
-				.csrf(AbstractHttpConfigurer::disable)//
-				.httpBasic(Customizer.withDefaults()) //
-				.build();
+		http//
+				.authorizeHttpRequests(requests -> requests //
+						.mvcMatchers("/register").authenticated() //
+						.anyRequest().permitAll())///
+				.oauth2Login(oauth2 -> oauth2.authorizedClientRepository(oAuth2AuthorizedClientRepository)
+						.authorizationEndpoint(
+								authorization -> authorization.authorizationRequestResolver(authorizationResolver)));
+		return http.build();
 	}
-
-	/*
-	 * @Bean DefaultSecurityFilterChain springSecurity(HttpSecurity http, //
-	 * OAuth2AuthorizedClientRepository oAuth2AuthorizedClientRepository, //
-	 * OAuth2AuthorizationRequestResolver authorizationResolver) throws Exception { http//
-	 * .authorizeHttpRequests(requests -> requests //
-	 * .mvcMatchers("/actuator/*").permitAll()// .mvcMatchers("/").permitAll()//
-	 * .anyRequest().authenticated()// )// .oauth2Login(oauth2 ->
-	 * oauth2.authorizedClientRepository(oAuth2AuthorizedClientRepository)
-	 * .authorizationEndpoint( authorization ->
-	 * authorization.authorizationRequestResolver(authorizationResolver))); return
-	 * http.build(); }
-	 */
 
 	@Bean
 	OAuth2AuthorizationRequestResolver authorizationRequestResolver(
