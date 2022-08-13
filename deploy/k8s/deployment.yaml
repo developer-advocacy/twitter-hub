@@ -15,12 +15,20 @@ spec:
         app: twitter
     spec:
       containers:
-#        - image: gcr.io/bootiful/twitter
-        - image: us-docker.pkg.dev/google-samples/containers/gke/hello-app:1.0
+        - image: gcr.io/bootiful/twitter
+#        - image: us-docker.pkg.dev/google-samples/containers/gke/hello-app:1.0
           imagePullPolicy: Always
           name: twitter
           ports:
             - containerPort: 8080
+
+          startupProbe:
+            httpGet:
+              port: 8080
+              path: /actuator/health/readiness
+            failureThreshold: 30
+            periodSeconds: 10
+
           readinessProbe:
             periodSeconds: 40
             timeoutSeconds: 30
