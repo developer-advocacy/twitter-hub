@@ -2,17 +2,20 @@ package com.joshlong.twitter.tweets;
 
 import com.joshlong.twitter.clients.ClientService;
 import com.joshlong.twitter.registrations.TwitterRegistrationService;
+import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.r2dbc.core.DatabaseClient;
+import org.springframework.security.crypto.encrypt.TextEncryptor;
 import reactor.test.StepVerifier;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
 
+@Slf4j
 @SpringBootTest
 class ScheduledTweetServiceTest {
 
@@ -26,11 +29,14 @@ class ScheduledTweetServiceTest {
 
 	private final String password = "i7WuCg85C9F5";
 
-	ScheduledTweetServiceTest(@Autowired DatabaseClient databaseClient,
+	private final TextEncryptor encryptor;
+
+	ScheduledTweetServiceTest(@Autowired TextEncryptor encryptor, @Autowired DatabaseClient databaseClient,
 			@Autowired TwitterRegistrationService registration, @Autowired ClientService clients,
 			@Autowired ScheduledTweetService scs) {
 		this.scs = scs;
 		this.dbc = databaseClient;
+		this.encryptor = encryptor;
 		this.clients = clients;
 		this.registrations = registration;
 	}
@@ -50,7 +56,7 @@ class ScheduledTweetServiceTest {
 		var json = """
 				{ "text" : "Hi, Spring fans!" }
 				""";
-		var tomorrow = Date.from(Instant.now().plus(10, ChronoUnit.MINUTES));
+		var tomorrow = Date.from(Instant.now().minus(10, ChronoUnit.MINUTES));
 		var scheduled = this.scs.schedule("@TEST_TWITTER_USERNAME", json, tomorrow, "test_client", this.password, null);
 		var unscheduled = this.scs.due();
 		var match = unscheduled.filter(st -> st.scheduled().equals(tomorrow) && st.clientId().equals("test_client")

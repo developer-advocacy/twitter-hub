@@ -4,6 +4,7 @@ import com.joshlong.twitter.utils.TwitterUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.r2dbc.core.DatabaseClient;
+import org.springframework.security.crypto.encrypt.TextEncryptor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
@@ -26,20 +27,25 @@ class SqlScheduledTweetService implements ScheduledTweetService {
 
 	private final DatabaseClient dbc;
 
-	private final Function<Map<String, Object>, ScheduledTweet> scheduledTweetMapper = //
-			record -> new ScheduledTweet(//
+	private final TextEncryptor encryptor;
+
+	private final Function<Map<String, Object>, ScheduledTweet> scheduledTweetMapper = new Function<Map<String, Object>, ScheduledTweet>() {
+		@Override
+		public ScheduledTweet apply(Map<String, Object> record) {
+			return new ScheduledTweet(//
 					(String) record.get("username"), //
 					(String) record.get("json_request"), //
 					dateFromLocalDateTime(((LocalDateTime) record.get("scheduled"))), //
 					(String) record.get("client_id"), //
-					(String) record.get("client_secret"), //
+					encryptor.decrypt((String) record.get("client_secret")), //
 					record.containsKey("date") ? dateFromLocalDateTime((LocalDateTime) record.get("sent")) : null, //
 					(String) record.get("id") //
 			);
+		}
+	};//
 
 	@Override
 	public Flux<ScheduledTweet> due() {
-		// find everything that hasn't been sent and whose schedule time was before NOW()
 		var sql = """
 				SELECT
 				    st.*
@@ -50,10 +56,7 @@ class SqlScheduledTweetService implements ScheduledTweetService {
 				AND
 				    st.scheduled <= (select NOW() )
 				""";
-		// var now = this.dbc.sql("select NOW() as ts").fetch().all().map(r ->
-		// r.get("ts")).doOnNext(o -> log.info("now is " + o));
-		var scheduled = this.dbc.sql(sql).fetch().all().map(this.scheduledTweetMapper);
-		return (scheduled);
+		return this.dbc.sql(sql).fetch().all().map(this.scheduledTweetMapper);
 	}
 
 	@Override
@@ -104,7 +107,7 @@ class SqlScheduledTweetService implements ScheduledTweetService {
 				.bind("json_request", jsonRequest.trim())//
 				.bind("scheduled", scheduled)//
 				.bind("id", id)//
-				.bind("client_secret", clientSecret)//
+				.bind("client_secret", this.encryptor.encrypt(clientSecret))//
 				.bind("client_id", clientId);
 		executeSpec = (sent == null) ? executeSpec.bindNull("sent", Date.class) : executeSpec.bind("sent", sent);
 		var findByIdSql = """

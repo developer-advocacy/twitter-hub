@@ -123,4 +123,10 @@ This application runs on the `joshlong-dot-com` Kubernetes cluster. You can logi
 
 ```shell
 k get deployments/twitter ingress/twitter-ingress ManagedCertificate/twitter-certificate  service/twitter
+``` 
+
+## Resetting the DB
+
+```sql
+drop table twitter_scheduled_tweets, twitter_accounts, twitter_clients cascade 
 ```
