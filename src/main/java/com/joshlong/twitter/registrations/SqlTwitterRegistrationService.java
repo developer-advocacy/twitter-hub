@@ -24,12 +24,9 @@ class SqlTwitterRegistrationService implements TwitterRegistrationService {
 	private final TextEncryptor encryptor;
 
 	private final Function<Map<String, Object>, TwitterRegistration> mapTwitterRegistrationFunction = //
-			record -> {
-				log.debug("going to map for " + record);
-				return new TwitterRegistration((String) record.get("username"),
-						decrypt((String) record.get("access_token")), decrypt((String) record.get("refresh_token")),
-						DateUtils.dateFromLocalDateTime((LocalDateTime) record.get("updated")));
-			};
+			record -> new TwitterRegistration((String) record.get("username"),
+					decrypt((String) record.get("access_token")), decrypt((String) record.get("refresh_token")),
+					DateUtils.dateFromLocalDateTime((LocalDateTime) record.get("updated")));
 
 	SqlTwitterRegistrationService(DatabaseClient dbc, TextEncryptor encryptor) {
 		this.dbc = dbc;
@@ -38,12 +35,11 @@ class SqlTwitterRegistrationService implements TwitterRegistrationService {
 
 	private String decrypt(String encryptedText) {
 		try {
-			var d = this.encryptor.decrypt(encryptedText);
-			log.debug("before [" + encryptedText + "] after [" + d + "]");
-			return d;
+			return this.encryptor.decrypt(encryptedText);
 		} //
 		catch (Throwable e) {
-			log.error("got an error trying to decrypt " + encryptedText, e);
+			if (log.isDebugEnabled())
+				log.error("got an error trying to decrypt " + encryptedText, e);
 		}
 		return null;
 	}
@@ -59,7 +55,6 @@ class SqlTwitterRegistrationService implements TwitterRegistrationService {
 	@Override
 	public Mono<TwitterRegistration> byUsername(String username) {
 		Assert.hasText(username, "the username must not be null");
-		log.debug("trying to find a TwitterRegistration for username @" + username);
 		return this.dbc//
 				.sql("select * from twitter_accounts where username = :un") //
 				.bind("un", TwitterUtils.validateUsername(username)) //
@@ -82,7 +77,6 @@ class SqlTwitterRegistrationService implements TwitterRegistrationService {
 				    updated = excluded.updated
 				""";
 		var tr = new TwitterRegistration(TwitterUtils.validateUsername(username), accessToken, refreshToken);
-		log.debug("trying to register (" + tr + ")");
 		var ts = new Date();
 		return this.dbc.sql(sql)//
 				.bind("username", tr.username())//

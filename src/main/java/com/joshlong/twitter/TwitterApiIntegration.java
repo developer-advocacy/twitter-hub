@@ -94,29 +94,32 @@ class TwitterApiIntegration {
 				+ jsonRequest + "]");
 		var now = new Date();
 		var freshnessWindow = 30 * 1000 * 60;
-		var freshTwitterRegistration = this.registrations //
-				.byUsername(twitterUsername) //
-				.doOnNext(tr -> log.info("found a TwitterRegistration " + tr.toString())).flatMap(tr -> {//
-					var tooOld = now.getTime() - freshnessWindow;
-					var fresh = tr.lastUpdated().getTime() > tooOld;
-					if (fresh) { // if it was updated in the last two hours, use it.
-						log.info("the access token for @" + tr.username() + " was created recently (" + tr.lastUpdated()
-								+ "). Using as-is");
-						return Mono.just(tr);
-					}
-					else {
-						// otherwise, refresh it
-						log.info("the access token for @" + tr.username() + " was not created recently ("
-								+ tr.lastUpdated() + "). Refreshing");
-						return refreshAccessToken(tr.username(), tr.refreshToken());
-					}
-				}) //
-				.doOnError(e -> log.error("oops!", e));
+		var trClazzName = TwitterRegistration.class.getSimpleName();
 		return this.clients //
 				.authenticate(clientId, clientSecret)//
-				.flatMap(c -> freshTwitterRegistration)//
-				.doOnNext(registration -> log.info("got a valid " + TwitterRegistration.class.getSimpleName()
-						+ " with a fresh access code for @" + registration.username() + "."))//
+				.flatMap(c -> this.registrations //
+						.byUsername(twitterUsername) //
+						.doOnNext(tr -> log.info("found a " + trClazzName + " " + tr.toString()))//
+						.flatMap(tr -> {//
+							var tooOld = now.getTime() - freshnessWindow;
+							var fresh = tr.lastUpdated().getTime() > tooOld;
+							if (fresh) { // if it was updated in the last two hours, use
+											// it.
+								log.info("the access token for @" + tr.username() + " was created recently ("
+										+ tr.lastUpdated() + "). Using as-is");
+								return Mono.just(tr);
+							}
+							else {
+								// otherwise, refresh it
+								log.info("the access token for @" + tr.username() + " was not created recently ("
+										+ tr.lastUpdated() + "). Refreshing");
+								return refreshAccessToken(tr.username(), tr.refreshToken());
+							}
+						}) //
+						.doOnError(e -> log.error("oops!", e)) //
+				)//
+				.doOnNext(registration -> log.info("got a valid " + trClazzName + " with a fresh access code for @"
+						+ registration.username() + "."))//
 				.flatMap(tr -> post(jsonRequest, tr.accessToken()))//
 				.doOnNext(pt -> log.info("posted tweet: " + pt.toString()));
 

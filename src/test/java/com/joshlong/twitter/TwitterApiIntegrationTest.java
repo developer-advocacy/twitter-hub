@@ -17,7 +17,6 @@ import java.time.Instant;
 @SpringBootTest
 class TwitterApiIntegrationTest {
 
-	//
 	private final TwitterApiIntegration integration;
 
 	private final StreamBridge streamBridge;
@@ -26,7 +25,6 @@ class TwitterApiIntegrationTest {
 
 	private final TwitterRegistrationService registrations;
 
-	//
 	private final String secret = "1234";
 
 	private final String clientId = "test-client";

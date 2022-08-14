@@ -24,10 +24,9 @@ import org.springframework.security.web.DefaultSecurityFilterChain;
 @EnableWebSecurity
 class SecurityConfiguration {
 
-	@Bean
+	@Bean // todo why do things break when this is used?
 	TextEncryptor encryptor(TwitterProperties properties) {
-		return Encryptors.noOpText(); // Encryptors.delux(
-		// properties.encryption().password(), properties.encryption().salt());
+		return Encryptors.delux(properties.encryption().password(), properties.encryption().salt());
 	}
 
 	@Bean

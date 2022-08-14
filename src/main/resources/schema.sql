@@ -2,8 +2,8 @@
 create table if not exists twitter_accounts
 (
     username      varchar(1000) not null,
-    access_token  text          not null,
-    refresh_token text          not null,
+    access_token  varchar(1000) not null,
+    refresh_token varchar(1000) not null,
     created       timestamp     not null,
     updated       timestamp     not null,
     primary key (username)

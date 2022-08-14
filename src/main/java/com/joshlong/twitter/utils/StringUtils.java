@@ -8,23 +8,28 @@ public abstract class StringUtils {
 		return mask(text, '*');
 	}
 
-	public static String mask(String text, char maskChar) {
-		Assert.hasText(text, "the text to mask must be non empty!");
+	private static String repeat(char maskChar, int count) {
 		var n = new StringBuffer();
-		for (var i = 0; i < text.length(); i++)
+		for (var i = 0; i < count; i++)
 			n.append(maskChar);
 		return n.toString();
-		// var len = text.length();
-		// var quarter = ((double) len) * .25;
-		// var size = text.length();
-		// if (quarter > 0) {
-		// size = (int) quarter;
-		// }
-		// // return the whole thing masked
-		// var nm = new StringBuffer() ;
-		// for (var i = 0 ; i < size ; i++ )
-		// nm.append( maskChar)
+	}
 
+	public static String mask(String text, char maskChar) {
+		var show = .2;
+		Assert.hasText(text, "the text to mask must be non empty!");
+		var l = text.length();
+		if (l == 1)
+			return "" + maskChar;
+		if (l <= 5)
+			return repeat(maskChar, 3); // that way we dont have weirdness w/ odds
+		var lettersToShowCount = (int) (show * ((double) l));
+		if (lettersToShowCount % 2 == 1)
+			lettersToShowCount += 1;
+		var b = text.substring(0, lettersToShowCount);
+		var m = repeat(maskChar, l - (2 * lettersToShowCount));
+		var e = text.substring(text.length() - lettersToShowCount);
+		return b + m + e;
 	}
 
 }

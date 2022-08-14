@@ -1,10 +1,13 @@
 package com.joshlong.twitter.registrations;
 
+import com.joshlong.twitter.utils.StringUtils;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+
+import java.util.Map;
 
 @Slf4j
 @Configuration
@@ -15,7 +18,10 @@ class RegistrationsConfiguration {
 			@Value("${debug:false}") boolean debug) {
 		return args -> {
 			if (debug) {
-				registrations.registrations().subscribe(tr -> log.info(tr.toString()));
+				registrations.registrations()
+						.subscribe(tr -> log.info("" + Map.of("username", tr.username(), "accessToken",
+								StringUtils.securityMask(tr.accessToken()), "refreshToken",
+								StringUtils.securityMask(tr.refreshToken()))));
 			}
 		};
 	}
