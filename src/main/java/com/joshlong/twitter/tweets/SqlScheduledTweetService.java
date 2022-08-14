@@ -39,6 +39,7 @@ class SqlScheduledTweetService implements ScheduledTweetService {
 
 	@Override
 	public Flux<ScheduledTweet> due() {
+		// find everything that hasn't been sent and whose schedule time was before NOW()
 		var sql = """
 				SELECT
 				    st.*
@@ -47,9 +48,12 @@ class SqlScheduledTweetService implements ScheduledTweetService {
 				WHERE
 				    st.sent is null
 				AND
-				    st.scheduled <= (select NOW() + '30 minutes'::interval   )
+				    st.scheduled <= (select NOW() )
 				""";
-		return this.dbc.sql(sql).fetch().all().map(this.scheduledTweetMapper);
+		// var now = this.dbc.sql("select NOW() as ts").fetch().all().map(r ->
+		// r.get("ts")).doOnNext(o -> log.info("now is " + o));
+		var scheduled = this.dbc.sql(sql).fetch().all().map(this.scheduledTweetMapper);
+		return (scheduled);
 	}
 
 	@Override
