@@ -125,7 +125,20 @@ This application runs on the `joshlong-dot-com` Kubernetes cluster. You can logi
 k get deployments/twitter ingress/twitter-ingress ManagedCertificate/twitter-certificate  service/twitter
 ``` 
 
+## Security 
+
+This needs to be pretty secure, by its nature.  It uses OAuth and PKCE to establish the connection with Twitter for the accounts the service manages. 
+
+All access tokens and refresh tokens, which may be used again at some point in the future, are symmetrically encrypted with Spring Security's `TextEncryptor`. Likewise, the `clientSecret` sent in the request on RabbitMQ to create a `ScheduledTweet` is also encrypted so that while it lives in the `twitter_scheduled_tweets` table, it's not in plain-text. This encryptor is symmetrical: you can decrypt the values assuming you have a `TextEncryptor` configured in exactly the same was it when you encrypted the values. This means using the exact same `salt` and `password`.  The `password` and `salt` come from configuration which you're expected to override (use Kubernetes `Secret`s and `ConfigMap`s, Hashicorp Vault, Spring Cloud Config Server, or straight up environment variables as appropriate in your deployment). 
+
+The clients defined in `twitter_clients` have a client ID and a secret. The secret is assymetrically encoded using BCrypt and is written to the DB in that form. When we decrypt the value from the `twitter_scheduled_tweet`, we then use it as a _raw_ value to test whether it matches the BCrypt value for the client in the `twitter_clients` table. 
+
+It might be worth exploring whether we could do the authentication at the time of the request (as opposed to when the Tweet is actually sent out, at some point in the future). This way, we wouldn't need to store the client secret (even encrypted) in a symmetric fashion that could in theory be reversed if somebody got hold of the `salt` and `password`.
+
+
 ## Resetting the DB
+
+Because the secure values are extraordinarily sensitive, if you change anything, anywhere, and don't note the change, you'll lose access to your data. If you're developing the code locally, make sure to take care to reset judiciously, or you'll get phantom errors about cryptography and padding and keys and what all. There's no coming back from that. You just need to reset, like this:
 
 ```sql
 drop table twitter_scheduled_tweets, twitter_accounts, twitter_clients cascade 
