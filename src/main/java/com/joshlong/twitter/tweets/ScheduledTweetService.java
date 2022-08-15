@@ -11,6 +11,8 @@ public interface ScheduledTweetService {
 
 	Mono<ScheduledTweet> send(ScheduledTweet tweet, Date date);
 
+	Flux<Date> scheduleDates();
+
 	Mono<ScheduledTweet> schedule(String username, String jsonRequest, Date scheduled, String clientId,
 			String clientSecret, Date sent);
 
