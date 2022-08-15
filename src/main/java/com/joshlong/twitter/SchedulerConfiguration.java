@@ -26,6 +26,7 @@ import java.util.Date;
 import java.util.Map;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Configuration
@@ -93,7 +94,8 @@ class SchedulerConfiguration {
 				.map(Date::toInstant)//
 				.map(i -> i.plus(1, TimeUnit.MINUTES.toChronoUnit())).collectList() //
 				.flatMapMany(list -> {
-					log.debug("registering " + list.size() + " upcoming dates: ");
+					log.debug("registering " + list.size() + " upcoming dates: "
+							+ list.stream().map(Instant::toString).collect(Collectors.joining(", ")));
 					schedulingService.schedule(list);
 					return Flux.fromIterable(list);
 				});
