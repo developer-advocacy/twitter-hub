@@ -29,14 +29,11 @@ class ScheduledTweetServiceTest {
 
 	private final String password = "i7WuCg85C9F5";
 
-	private final TextEncryptor encryptor;
-
-	ScheduledTweetServiceTest(@Autowired TextEncryptor encryptor, @Autowired DatabaseClient databaseClient,
+	ScheduledTweetServiceTest(@Autowired DatabaseClient databaseClient,
 			@Autowired TwitterRegistrationService registration, @Autowired ClientService clients,
 			@Autowired ScheduledTweetService scs) {
 		this.scs = scs;
 		this.dbc = databaseClient;
-		this.encryptor = encryptor;
 		this.clients = clients;
 		this.registrations = registration;
 	}

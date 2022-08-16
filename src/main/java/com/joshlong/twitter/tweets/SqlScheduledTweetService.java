@@ -60,22 +60,6 @@ class SqlScheduledTweetService implements ScheduledTweetService {
 	}
 
 	@Override
-	public Flux<Date> scheduleDates() {
-		var sql = """
-				SELECT
-				    st.scheduled
-				FROM
-				    twitter_scheduled_tweets st
-				WHERE
-				    st.sent is null
-
-
-				""";
-		return this.dbc.sql(sql).fetch().all().map(r -> dateFromLocalDateTime((LocalDateTime) r.get("scheduled")))
-				.distinct();
-	}
-
-	@Override
 	public Mono<ScheduledTweet> send(ScheduledTweet tweet, Date sent) {
 		Assert.notNull(sent, "you must provide the datetime at which point the ScheduledTweet was sent");
 		return this.schedule(tweet.username(), tweet.jsonRequest(), tweet.scheduled(), tweet.clientId(),
