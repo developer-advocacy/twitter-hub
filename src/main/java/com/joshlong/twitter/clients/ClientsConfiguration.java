@@ -29,8 +29,8 @@ class ClientsConfiguration {
 							var valueToPrintForSecret = debug ? secret : repeat('*', secret.length());
 							return clientService //
 									.register(clientId, secret) //
-									.doOnNext(cc -> log.info(String.format("registering client %s with secret %s",
-											clientId, valueToPrintForSecret)));
+									.doOnNext(cc -> log.info(
+											String.format("registering client %s with secret %s", clientId, secret)));
 						})//
 						.subscribe();
 
