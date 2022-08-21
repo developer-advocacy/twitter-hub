@@ -16,16 +16,8 @@ spec:
     spec:
       containers:
         - image: gcr.io/bootiful/twitter
-#        - image: gcr.io/bootiful/joshlong-com-api
           imagePullPolicy: Always
           name: twitter-container
-#        - image: gcr.io/bootiful/twitter
-#          #        - image: us-docker.pkg.dev/google-samples/containers/gke/hello-app:1.0
-#          imagePullPolicy: Always
-#          name: twitter
-#          ports:
-#            - containerPort: 8080
-
           startupProbe:
             failureThreshold: 60
             periodSeconds: 60
@@ -51,6 +43,7 @@ spec:
               value: "production"
             - name: LANG
               value: "en_US.UTF-8"
+
             - name: SPRING_R2DBC_PASSWORD
               valueFrom:
                 secretKeyRef:
