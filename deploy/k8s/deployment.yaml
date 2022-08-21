@@ -43,7 +43,36 @@ spec:
               value: "production"
             - name: LANG
               value: "en_US.UTF-8"
-
+            - name: TWITTER_CLIENTS_0_ID
+              valueFrom:
+                secretKeyRef:
+                  name: twitter-secrets
+                  key: TWITTER_CLIENTS_0_ID
+            - name: TWITTER_CLIENTS_1_ID
+              valueFrom:
+                secretKeyRef:
+                  name: twitter-secrets
+                  key: TWITTER_CLIENTS_1_ID
+            - name: TWITTER_CLIENTS_2_ID
+              valueFrom:
+                secretKeyRef:
+                  name: twitter-secrets
+                  key: TWITTER_CLIENTS_2_ID
+            - name: TWITTER_CLIENTS_0_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: twitter-secrets
+                  key: TWITTER_CLIENTS_0_SECRET
+            - name: TWITTER_CLIENTS_1_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: twitter-secrets
+                  key: TWITTER_CLIENTS_1_SECRET
+            - name: TWITTER_CLIENTS_2_SECRET
+              valueFrom:
+                secretKeyRef:
+                  name: twitter-secrets
+                  key: TWITTER_CLIENTS_2_SECRET
             - name: SPRING_R2DBC_PASSWORD
               valueFrom:
                 secretKeyRef:
@@ -94,41 +123,6 @@ spec:
                 secretKeyRef:
                   name: twitter-secrets
                   key: TWITTER_APP_CLIENT_SECRET
-            - name: TWITTER_CLIENTS_0_CLIENT_ID
-              valueFrom:
-                secretKeyRef:
-                  name: twitter-secrets
-                  key: TWITTER_CLIENTS_0_CLIENT_ID
-            - name: TWITTER_CLIENTS_0_CLIENT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: twitter-secrets
-                  key: TWITTER_CLIENTS_0_CLIENT_SECRET
-
-            - name: TWITTER_CLIENTS_1_CLIENT_ID
-              valueFrom:
-                secretKeyRef:
-                  name: twitter-secrets
-                  key: TWITTER_CLIENTS_1_CLIENT_ID
-            - name: TWITTER_CLIENTS_1_CLIENT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: twitter-secrets
-                  key: TWITTER_CLIENTS_1_CLIENT_SECRET
-
-
-            - name: TWITTER_CLIENTS_2_CLIENT_ID
-              valueFrom:
-                secretKeyRef:
-                  name: twitter-secrets
-                  key: TWITTER_CLIENTS_2_CLIENT_ID
-
-            - name: TWITTER_CLIENTS_2_CLIENT_SECRET
-              valueFrom:
-                secretKeyRef:
-                  name: twitter-secrets
-                  key: TWITTER_CLIENTS_2_CLIENT_SECRET
-
             - name: TWITTER_ENCRYPTION_PASSWORD
               valueFrom:
                 secretKeyRef:
