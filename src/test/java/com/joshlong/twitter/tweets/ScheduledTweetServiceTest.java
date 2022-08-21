@@ -45,7 +45,7 @@ class ScheduledTweetServiceTest {
 		StepVerifier.create(this.registrations.register("@tEST_twitter_userNAME", "at", "rt"))
 				.expectNextMatches(tr -> tr.username().equals("test_twitter_username")).verifyComplete();
 		StepVerifier.create(this.clients.register("test_client", this.password))
-				.expectNextMatches(c -> c.clientId().equals("test_client")).verifyComplete();
+				.expectNextMatches(c -> c.id().equals("test_client")).verifyComplete();
 	}
 
 	@Test

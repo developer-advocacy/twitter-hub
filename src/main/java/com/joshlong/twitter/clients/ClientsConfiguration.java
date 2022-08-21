@@ -24,7 +24,7 @@ class ClientsConfiguration {
 				Flux//
 						.fromArray(properties.clients()) //
 						.flatMap(c -> {
-							var clientId = c.clientId();
+							var clientId = c.id();
 							var secret = c.secret();// todo
 							var valueToPrintForSecret = debug ? secret : repeat('*', secret.length());
 							return clientService //

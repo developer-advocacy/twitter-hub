@@ -45,7 +45,7 @@ class ClientServiceTest {
 		log.info("encoded pw: " + this.passwordEncoder.encode("pw"));
 		log.info("encoded pw1: " + this.passwordEncoder.encode("pw1"));
 		var query = this.clientService.clients()//
-				.filter(c -> c.clientId().equals("client") && c.secret().equals(this.passwordEncoder.encode("pw"))) //
+				.filter(c -> c.id().equals("client") && c.secret().equals(this.passwordEncoder.encode("pw"))) //
 				.count();
 		StepVerifier.create(this.clientService.register("client", "pw").then(query)).expectNextCount(1)
 				.verifyComplete();
@@ -59,8 +59,8 @@ class ClientServiceTest {
 		var authenticated = this.clientService //
 				.authenticate("client", "pw1");
 		StepVerifier //
-				.create(authenticated.filter(c -> c.clientId().equals("client"))) //
-				.expectNextMatches(c -> c.clientId().equalsIgnoreCase("client")) //
+				.create(authenticated.filter(c -> c.id().equals("client"))) //
+				.expectNextMatches(c -> c.id().equalsIgnoreCase("client")) //
 				.verifyComplete();
 
 	}

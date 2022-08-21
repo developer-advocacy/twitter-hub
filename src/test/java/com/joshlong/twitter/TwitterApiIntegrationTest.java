@@ -55,7 +55,7 @@ class TwitterApiIntegrationTest {
 		StepVerifier //
 				.create(this.clients.register(this.clientId, this.secret)
 						.then(this.clients.authenticate(this.clientId, this.secret)))//
-				.expectNextMatches(c -> c.clientId().equals(this.clientId)) //
+				.expectNextMatches(c -> c.id().equals(this.clientId)) //
 				.verifyComplete();
 		var json = String.format("""
 				{ "text" : "sending a tweet from a unit test at %s" }
