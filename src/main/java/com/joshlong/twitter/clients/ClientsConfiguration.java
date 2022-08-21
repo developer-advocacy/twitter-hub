@@ -25,7 +25,7 @@ class ClientsConfiguration {
 						.fromArray(properties.clients()) //
 						.flatMap(c -> {
 							var clientId = c.clientId();
-							var secret = c.secret();
+							var secret = c.secret();// todo
 							var valueToPrintForSecret = debug ? secret : repeat('*', secret.length());
 							return clientService //
 									.register(clientId, secret) //
