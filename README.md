@@ -1,4 +1,4 @@
-# Twitter Service 1.0
+# Twitter Gateway 1.0
 
 ## Design
 
