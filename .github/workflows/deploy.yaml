@@ -5,7 +5,6 @@ env:
   GKE_CLUSTER: joshlong-com
   GKE_ZONE: us-central1-c
   GCP_CREDENTIALS: ${{ secrets.GCP_CREDENTIALS }}
-
   PROJECT_ID: ${{ secrets.GKE_PROJECT }}
 
   SPRING_R2DBC_PASSWORD: ${{ secrets.SPRING_R2DBC_PASSWORD }}
