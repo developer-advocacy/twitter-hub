@@ -1,4 +1,6 @@
-# Twitter Gateway 1.0
+# Twitter Gateway 0.0.1
+
+
 
 ## Design
 
