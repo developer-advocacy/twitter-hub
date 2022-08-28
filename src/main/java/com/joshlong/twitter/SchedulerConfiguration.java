@@ -54,6 +54,8 @@ class SchedulerConfiguration {
 			ScheduledTweetService service) {
 		return sink -> sink //
 				.flatMap(message -> { //
+					var unparsedPayload = message.getPayload();
+					log.debug("payload: " + unparsedPayload);
 					var payload = parseJsonIntoTweetRequest(objectMapper, message.getPayload());
 					var scheduled = payload.scheduled();
 					return service
