@@ -125,7 +125,6 @@ class TwitterApiIntegration {
 
 	}
 
-
 	// https://developer.twitter.com/en/docs/authentication/oauth-1-0a/oauth-echo
 	@SneakyThrows
 	Mono<String> createMedia(WebClient http, String accessToken, byte[] bytes) {
