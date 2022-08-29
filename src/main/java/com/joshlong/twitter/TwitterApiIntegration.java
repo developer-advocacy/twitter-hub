@@ -142,7 +142,6 @@ class TwitterApiIntegration {
 		return http.post().uri(mediaUploadUrl).contentType(MediaType.MULTIPART_FORM_DATA)
 				.body(BodyInserters.fromMultipartData(build)).headers(h -> h.setBearerAuth(accessToken)).retrieve()
 				.bodyToMono(String.class);
-
 	}
 
 	@SneakyThrows
