@@ -10,6 +10,7 @@ import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.MediaType;
+import org.springframework.http.client.MultipartBodyBuilder;
 import org.springframework.util.Assert;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -103,8 +104,7 @@ class TwitterApiIntegration {
 						.flatMap(tr -> {//
 							var tooOld = now.getTime() - freshnessWindow;
 							var fresh = tr.lastUpdated().getTime() > tooOld;
-							if (fresh) { // if it was updated in the last two hours, use
-											// it.
+							if (fresh) {
 								log.info("the access token for @" + tr.username() + " was created recently ("
 										+ tr.lastUpdated() + "). Using as-is");
 								return Mono.just(tr);
@@ -122,6 +122,25 @@ class TwitterApiIntegration {
 						+ registration.username() + "."))//
 				.flatMap(tr -> post(jsonRequest, tr.accessToken()))//
 				.doOnNext(pt -> log.info("posted tweet: " + pt.toString()));
+
+	}
+
+	@SneakyThrows
+	Mono<String> createMedia(WebClient http, String accessToken, byte[] bytes) {
+		var mediaUploadUrl = "https://upload.twitter.com/1.1/media/upload.json?media_category=tweet_image";
+
+		var multipartBodyBuilder = new MultipartBodyBuilder();
+		multipartBodyBuilder.part("media_data", bytes).header("Content-Disposition",
+				"form-data; name=media_data; filename=profile-image.jpg");
+		var build = multipartBodyBuilder.build();
+
+		// bodyBuilder.part("profileImage",
+		// ClassPathResource("test-image.jpg").file.readBytes())
+		// .header("Content-Disposition", "form-data; name=profileImage;
+		// filename=profile-image.jpg")
+		return http.post().uri(mediaUploadUrl).contentType(MediaType.MULTIPART_FORM_DATA)
+				.body(BodyInserters.fromMultipartData(build)).headers(h -> h.setBearerAuth(accessToken)).retrieve()
+				.bodyToMono(String.class);
 
 	}
 

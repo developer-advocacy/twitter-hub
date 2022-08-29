@@ -76,6 +76,10 @@ class SqlTwitterRegistrationService implements TwitterRegistrationService {
 				    refresh_token = excluded.refresh_token ,
 				    updated = excluded.updated
 				""";
+		log.info("========================================");
+		log.info("access token: [" + accessToken + "]");
+		log.info("refresh token: [" + refreshToken + "]");
+
 		var tr = new TwitterRegistration(TwitterUtils.validateUsername(username), accessToken, refreshToken);
 		var ts = new Date();
 		return this.dbc.sql(sql)//
