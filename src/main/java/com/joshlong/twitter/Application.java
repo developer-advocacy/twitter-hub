@@ -4,7 +4,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.joshlong.twitter.clients.ClientService;
 import com.joshlong.twitter.registrations.TwitterRegistrationService;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.availability.AvailabilityChangeEvent;
@@ -13,6 +12,10 @@ import org.springframework.boot.availability.ReadinessState;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.event.EventListener;
+import org.springframework.security.crypto.encrypt.Encryptors;
+import org.springframework.security.crypto.encrypt.TextEncryptor;
+import org.springframework.security.crypto.factory.PasswordEncoderFactories;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.server.WebFilter;
 
@@ -31,6 +34,16 @@ public class Application {
 	@Bean
 	WebClient webClient(WebClient.Builder webClient) {
 		return webClient.build();
+	}
+
+	@Bean
+	TextEncryptor encryptor(TwitterProperties properties) {
+		return Encryptors.delux(properties.encryption().password(), properties.encryption().salt());
+	}
+
+	@Bean
+	PasswordEncoder passwordEncoder() {
+		return PasswordEncoderFactories.createDelegatingPasswordEncoder();
 	}
 
 	@EventListener
@@ -52,11 +65,10 @@ public class Application {
 	}
 
 	@Bean
-	TwitterApiIntegration integration(
-			@Value("${spring.security.oauth2.client.registration.twitter.client-id}") String clientId,
-			@Value("${spring.security.oauth2.client.registration.twitter.client-secret}") String clientSecret,
-			WebClient http, ClientService clientService, ObjectMapper om, TwitterRegistrationService registrations) {
-		return new TwitterApiIntegration(clientId, clientSecret, http, clientService, registrations, om);
+	TwitterApiIntegration integration(TwitterProperties properties, WebClient http, ClientService clientService,
+			ObjectMapper om, TwitterRegistrationService registrations) {
+		return new TwitterApiIntegration(http, clientService, registrations, om, properties.app().clientId(),
+				properties.app().clientSecret());
 	}
 
 }

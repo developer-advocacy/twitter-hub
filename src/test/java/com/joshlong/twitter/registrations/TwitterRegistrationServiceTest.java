@@ -6,7 +6,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.r2dbc.core.DatabaseClient;
-import org.springframework.security.crypto.encrypt.TextEncryptor;
 import org.springframework.util.StringUtils;
 import reactor.test.StepVerifier;
 
@@ -45,13 +44,11 @@ class TwitterRegistrationServiceTest {
 		log.debug("start");
 		StepVerifier//
 				.create(this.repository.register("@TesT", "at", "rt"))//
-				.expectNextMatches(tr -> tr.accessToken().equals("at") && tr.refreshToken().equals("rt")
-						&& tr.username().equals("test")) //
+				.expectNextMatches(tr -> tr.accessToken().equals("at") && tr.username().equals("test")) //
 				.verifyComplete();
 		log.debug("basics");
 		StepVerifier.create(this.repository.byUsername("test")) //
-				.expectNextMatches(tr -> StringUtils.hasText(tr.username()) && StringUtils.hasText(tr.accessToken())
-						&& StringUtils.hasText(tr.refreshToken())) //
+				.expectNextMatches(tr -> StringUtils.hasText(tr.username()) && StringUtils.hasText(tr.accessToken())) //
 				.verifyComplete();
 		log.debug("by username ");
 
@@ -69,8 +66,7 @@ class TwitterRegistrationServiceTest {
 
 		StepVerifier//
 				.create(this.repository.register("@TEST", "at1", "rt1"))//
-				.expectNextMatches(tr -> tr.accessToken().equals("at1") && tr.refreshToken().equals("rt1")
-						&& tr.username().equals("test")) //
+				.expectNextMatches(tr -> tr.accessToken().equals("at1") && tr.username().equals("test")) //
 				.verifyComplete();
 		var count = this.databaseClient//
 				.sql("select count(*) as count from twitter_accounts where username = :username")//

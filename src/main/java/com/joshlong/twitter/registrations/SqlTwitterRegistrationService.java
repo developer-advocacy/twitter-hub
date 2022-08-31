@@ -25,7 +25,7 @@ class SqlTwitterRegistrationService implements TwitterRegistrationService {
 
 	private final Function<Map<String, Object>, TwitterRegistration> mapTwitterRegistrationFunction = //
 			record -> new TwitterRegistration((String) record.get("username"),
-					decrypt((String) record.get("access_token")), decrypt((String) record.get("refresh_token")),
+					decrypt((String) record.get("access_token")), decrypt((String) record.get("access_token_secret")),
 					DateUtils.dateFromLocalDateTime((LocalDateTime) record.get("updated")));
 
 	SqlTwitterRegistrationService(DatabaseClient dbc, TextEncryptor encryptor) {
@@ -67,25 +67,24 @@ class SqlTwitterRegistrationService implements TwitterRegistrationService {
 	}
 
 	@Override
-	public Mono<TwitterRegistration> register(String username, String accessToken, String refreshToken) {
+	public Mono<TwitterRegistration> register(String username, String accessToken, String accessTokenSecret) {
 		var sql = """
-				insert into twitter_accounts(username, access_token, refresh_token, created, updated) values( :username, :at, :rt , :created, :updated )
+				insert into twitter_accounts(username, access_token,access_token_secret,  created, updated) values( :username, :at, :ats , :created, :updated )
 				on conflict on constraint twitter_accounts_pkey
 				do update SET
 				    access_token = excluded.access_token,
-				    refresh_token = excluded.refresh_token ,
 				    updated = excluded.updated
 				""";
 		log.info("========================================");
 		log.info("access token: [" + accessToken + "]");
-		log.info("refresh token: [" + refreshToken + "]");
+		log.info("access token secret: [" + accessTokenSecret + "]");
 
-		var tr = new TwitterRegistration(TwitterUtils.validateUsername(username), accessToken, refreshToken);
+		var tr = new TwitterRegistration(TwitterUtils.validateUsername(username), accessToken, accessTokenSecret);
 		var ts = new Date();
 		return this.dbc.sql(sql)//
 				.bind("username", tr.username())//
 				.bind("at", encryptor.encrypt(accessToken)) //
-				.bind("rt", encryptor.encrypt(refreshToken))//
+				.bind("ats", encryptor.encrypt(accessTokenSecret))//
 				.bind("created", ts)//
 				.bind("updated", ts)//
 				.fetch() //

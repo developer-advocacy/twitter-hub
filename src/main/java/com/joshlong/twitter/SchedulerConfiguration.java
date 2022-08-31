@@ -42,7 +42,7 @@ class SchedulerConfiguration {
 				.doOnNext(st -> log.info("attempting to send scheduled tweet: " + debugMap(st))) //
 				.flatMap(st -> this.operator.transactional(//
 						this.integration//
-								.sendLiveTweet(st.clientId(), st.clientSecret(), st.username(), st.jsonRequest())//
+								.tweet(st.clientId(), st.clientSecret(), st.username(), st.jsonRequest())//
 								.flatMap(x -> Mono.just(st))//
 								.flatMap(s -> this.service.send(s, new Date())) //
 				))//

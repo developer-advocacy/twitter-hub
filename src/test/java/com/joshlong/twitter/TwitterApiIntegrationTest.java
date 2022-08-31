@@ -8,12 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.cloud.stream.function.StreamBridge;
 import org.springframework.core.io.ClassPathResource;
-import org.springframework.http.MediaType;
 import org.springframework.util.Base64Utils;
 import org.springframework.util.FileCopyUtils;
 import org.springframework.util.StringUtils;
-import org.springframework.web.reactive.function.BodyInserters;
-import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import reactor.test.StepVerifier;
 
@@ -44,44 +41,27 @@ class TwitterApiIntegrationTest {
 		this.registrations = registrationService;
 	}
 
-	// todo figure out how to do the uploads dance with twitter
-	// https://developer.twitter.com/en/docs/twitter-api/v1/media/upload-media/api-reference/post-media-upload
-
-	// @Test
+	@Test
 	void createMedia() throws Exception {
 		var imgResource = new ClassPathResource("/images/test.png");
-		var bytes = (byte[]) null;
-		var encoded = (String) null;
 		try (var in = imgResource.getInputStream()) {
-			bytes = FileCopyUtils.copyToByteArray(in);
-			encoded = Base64Utils.encodeToString(bytes);
+			var bytes = FileCopyUtils.copyToByteArray(in);
+			var encoded = Base64Utils.encodeToString(bytes);
+			var request = new TwitterApiIntegration.Request("this is a test. can we send images? ", encoded);
+			var tr = this.registrations.byUsername("bpmpass").flatMap(r -> this.integration.post(request, r));
+			StepVerifier.create(tr).verifyComplete();
 		}
-		var http = WebClient.builder().build();
-		var at = "TnprckpVZEpNQnhybi13Nl9NMVY0Z3pNdlEzcTFNdlBqXzhjMGZPY08zLVF0OjE2NjE3NjMzNTU2NTE6MTowOmF0OjE";
-		var mediaUploadUrl = "https://upload.twitter.com/1.1/media/upload.json?media_category=tweet_image";
-		/*
-		 * var multipartBodyBuilder = new MultipartBodyBuilder(); multipartBodyBuilder
-		 * .part("media_data", bytes) ; var build = multipartBodyBuilder.build();
-		 */
-		// bodyBuilder.part("profileImage",
-		// ClassPathResource("test-image.jpg").file.readBytes())
-		// .header("Content-Disposition", "form-data; name=profileImage;
-		// filename=profile-image.jpg")
-		var media = http.post().uri(mediaUploadUrl).contentType(MediaType.MULTIPART_FORM_DATA)
-				.body(BodyInserters.fromMultipartData("media_data", encoded)).headers(h -> h.setBearerAuth(at))
-				.retrieve().bodyToMono(String.class);
-		StepVerifier.create(media.doOnNext(log::info)).verifyComplete();
 	}
 
 	@Test
 	void inAndOut() {
 		var username = "springbuxman";
 		var accessToken = "accessToken";
-		var refreshToken = "refreshToken";
-		var registered = this.registrations.register(username, accessToken, refreshToken);
-		StepVerifier
-				.create(registered).expectNextMatches(tr -> tr.username().equals(username)
-						&& tr.accessToken().equals(accessToken) && tr.refreshToken().equals(refreshToken))
+		var accessTokenSecret = "accessTokenSecret";
+		var registered = this.registrations.register(username, accessToken, accessTokenSecret);
+		StepVerifier.create(registered)//
+				.expectNextMatches(tr -> tr.username().equals(username)
+						&& tr.accessTokenSecret().equals(accessTokenSecret) && tr.accessToken().equals(accessToken)) //
 				.verifyComplete();
 	}
 
@@ -96,7 +76,7 @@ class TwitterApiIntegrationTest {
 				{ "text" : "sending a tweet from a unit test at %s" }
 				""", Instant.now().toString());
 		var live = this.integration //
-				.sendLiveTweet(this.clientId, this.secret, "bpmpass", json) //
+				.tweet(this.clientId, this.secret, "bpmpass", json) //
 				.switchIfEmpty(Mono.error(new IllegalStateException("couldn't send the tweet!")))//
 				.doOnError(e -> log.error("oops! something happened! ", e));
 		StepVerifier.create(live)

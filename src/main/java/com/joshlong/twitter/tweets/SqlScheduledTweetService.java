@@ -29,7 +29,7 @@ class SqlScheduledTweetService implements ScheduledTweetService {
 
 	private final TextEncryptor encryptor;
 
-	private final Function<Map<String, Object>, ScheduledTweet> scheduledTweetMapper = new Function<Map<String, Object>, ScheduledTweet>() {
+	private final Function<Map<String, Object>, ScheduledTweet> scheduledTweetMapper = new Function<>() {
 		@Override
 		public ScheduledTweet apply(Map<String, Object> record) {
 			return new ScheduledTweet(//
@@ -70,7 +70,6 @@ class SqlScheduledTweetService implements ScheduledTweetService {
 	public Mono<ScheduledTweet> schedule(String twitterUsername, String jsonRequest, Date scheduled, String clientId,
 			String clientSecret, Date sent) {
 		var id = UUID.randomUUID().toString();
-		var minimumRunwayInMinutes = 5;
 		var username = TwitterUtils.validateUsername(twitterUsername);
 		var sql = """
 				insert into twitter_scheduled_tweets (
