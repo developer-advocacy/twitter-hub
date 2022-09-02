@@ -20,8 +20,8 @@ class TwitterRegistrationController {
 
 	private final TwitterRegistrationService registrationService;
 
-	@PostMapping(value = "/register",
-			consumes = { MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_FORM_URLENCODED_VALUE })
+	@PostMapping(value = "/register", consumes = { MediaType.APPLICATION_JSON_VALUE,
+			MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_FORM_URLENCODED_VALUE })
 	Mono<Void> register(@RequestBody Map<String, String> registration) {
 		var username = registration.get("username");
 		var at = registration.getOrDefault("accessToken", registration.getOrDefault("access_token", null));
