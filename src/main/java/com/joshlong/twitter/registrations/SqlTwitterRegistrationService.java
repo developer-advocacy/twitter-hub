@@ -69,11 +69,9 @@ class SqlTwitterRegistrationService implements TwitterRegistrationService {
 	@Override
 	public Mono<TwitterRegistration> register(String username, String accessToken, String accessTokenSecret) {
 		var sql = """
-				insert into twitter_accounts(username, access_token,access_token_secret,  created, updated) values( :username, :at, :ats , :created, :updated )
+				insert into twitter_accounts(username, access_token, access_token_secret,  created, updated) values( :username, :at, :ats , :created, :updated )
 				on conflict on constraint twitter_accounts_pkey
-				do update SET
-				    access_token = excluded.access_token,
-				    updated = excluded.updated
+				do nothing
 				""";
 		log.info("========================================");
 		log.info("access token: [" + accessToken + "]");

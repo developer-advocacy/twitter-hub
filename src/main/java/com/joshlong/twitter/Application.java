@@ -65,9 +65,9 @@ public class Application {
 	}
 
 	@Bean
-	TwitterApiIntegration integration(TwitterProperties properties, WebClient http, ClientService clientService,
-			ObjectMapper om, TwitterRegistrationService registrations) {
-		return new TwitterApiIntegration(http, clientService, registrations, om, properties.app().clientId(),
+	TwitterApiIntegration integration(TwitterProperties properties, ClientService clientService,
+			TwitterRegistrationService registrations) {
+		return new TwitterApiIntegration(clientService, registrations, properties.app().clientId(),
 				properties.app().clientSecret());
 	}
 

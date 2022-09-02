@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.joshlong.twitter.tweets.ScheduledTweet;
 import com.joshlong.twitter.tweets.ScheduledTweetService;
+import com.joshlong.twitter.utils.Base64Utils;
 import com.joshlong.twitter.utils.DateUtils;
 import com.joshlong.twitter.utils.StringUtils;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ import reactor.core.publisher.Mono;
 
 import java.util.Date;
 import java.util.Map;
+import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Function;
 
@@ -42,9 +44,10 @@ class SchedulerConfiguration {
 				.doOnNext(st -> log.info("attempting to send scheduled tweet: " + debugMap(st))) //
 				.flatMap(st -> this.operator.transactional(//
 						this.integration//
-								.tweet(st.clientId(), st.clientSecret(), st.username(), st.jsonRequest())//
+								.tweet(st.clientId(), st.clientSecret(), st.username(), st.text(),
+										Base64Utils.decode(st.media()))//
 								.flatMap(x -> Mono.just(st))//
-								.flatMap(s -> this.service.send(s, new Date())) //
+								.flatMap(s -> this.service.schedule(s, new Date())) //
 				))//
 				.subscribe(st -> log.info("sent " + debugMap(st)));
 	}
@@ -57,31 +60,35 @@ class SchedulerConfiguration {
 					var unparsedPayload = message.getPayload();
 					log.debug("payload: " + unparsedPayload);
 					var payload = parseJsonIntoTweetRequest(objectMapper, message.getPayload());
-					var scheduled = payload.scheduled();
-					return service
-							.schedule(payload.twitterUsername(), payload.jsonRequest(), scheduled, payload.clientId(),
-									payload.clientSecret(), null) //
-							.then();
+					var scheduledTweet = new ScheduledTweet(payload.twitterUsername(), payload.text(), payload.media(),
+							payload.scheduled(), payload.clientId(), payload.clientSecret(), null,
+							UUID.randomUUID().toString());
+					return service.schedule(scheduledTweet, null).then();
 				});
 	}
 
 	@SneakyThrows
 	private static TweetRequest parseJsonIntoTweetRequest(ObjectMapper objectMapper, String json) {
 		var jn = objectMapper.readValue(json, JsonNode.class);
+		var scheduledNode = jn.has("scheduled") ? jn.get("scheduled") : null;
+		var scheduled = (null == scheduledNode) ? new Date() : DateUtils.readIsoDateTime(scheduledNode.textValue());
+
 		return new TweetRequest(//
 				jn.get("clientId").textValue(), //
 				jn.get("clientSecret").textValue(), //
 				jn.get("twitterUsername").textValue(), //
-				jn.get("jsonRequest").textValue(), //
-				DateUtils.readIsoDateTime(jn.get("scheduled").textValue())//
-		);
+				jn.get("text").textValue(), //
+				jn.get("media").textValue(), //
+				scheduled);
 	}
 
 	private static Map<String, String> debugMap(ScheduledTweet st) {
 		return Map.of( //
 				"clientId", st.clientId(), //
 				"twitter username", st.username(), //
-				"json", st.jsonRequest(), //
+				"text", st.text(), //
+				"media",
+				(org.springframework.util.StringUtils.hasText(st.media()) ? st.media() : "").length() + " characters", //
 				"clientSecret", StringUtils.securityMask(st.clientSecret()) //
 		);
 	}

@@ -9,9 +9,6 @@ public interface ScheduledTweetService {
 
 	Flux<ScheduledTweet> due();
 
-	Mono<ScheduledTweet> send(ScheduledTweet tweet, Date date);
-
-	Mono<ScheduledTweet> schedule(String username, String jsonRequest, Date scheduled, String clientId,
-			String clientSecret, Date sent);
+	Mono<ScheduledTweet> schedule(ScheduledTweet tweet, Date promoted);
 
 }

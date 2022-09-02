@@ -9,6 +9,6 @@ public interface TwitterRegistrationService {
 
 	Mono<TwitterRegistration> byUsername(String username);
 
-	Mono<TwitterRegistration> register(String username, String accessToken, String refreshToken);
+	Mono<TwitterRegistration> register(String username, String accessToken, String accessTokenSecret);
 
 }

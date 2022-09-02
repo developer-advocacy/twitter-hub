@@ -1,18 +1,15 @@
 package com.joshlong.twitter;
 
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.joshlong.twitter.clients.ClientService;
 import com.joshlong.twitter.registrations.TwitterRegistration;
 import com.joshlong.twitter.registrations.TwitterRegistrationService;
 import com.joshlong.twitter.utils.StringUtils;
 import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.core.io.Resource;
 import org.springframework.util.Assert;
 import org.springframework.util.Base64Utils;
-import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Mono;
 import twitter4j.Status;
 import twitter4j.StatusUpdate;
@@ -20,6 +17,7 @@ import twitter4j.Twitter;
 import twitter4j.TwitterFactory;
 import twitter4j.conf.ConfigurationBuilder;
 
+import java.io.InputStream;
 import java.util.Map;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -27,30 +25,18 @@ import java.util.concurrent.ConcurrentHashMap;
 @Slf4j
 class TwitterApiIntegration {
 
-	private final WebClient http;
+	private final Map<String, Twitter> twitterCacheMap = new ConcurrentHashMap<>();
 
 	private final ClientService clients;
 
 	private final TwitterRegistrationService registrations;
 
-	private final ObjectMapper objectMapper;
-
-	private final TypeReference<Map<String, Object>> tr = new TypeReference<>() {
-	};
-
-	private final ParameterizedTypeReference<Map<String, Object>> ptr = new ParameterizedTypeReference<>() {
-	};
-
-	private final Map<String, Twitter> twitterCacheMap = new ConcurrentHashMap<>();
-
 	private final String apiKey, apiKeySecret;
 
-	TwitterApiIntegration(WebClient http, ClientService clients, TwitterRegistrationService registrations,
-			ObjectMapper objectMapper, String apiKey, String apiKeySecret) {
-		this.http = http;
+	TwitterApiIntegration(ClientService clients, TwitterRegistrationService registrationService, String apiKey,
+			String apiKeySecret) {
 		this.clients = clients;
-		this.registrations = registrations;
-		this.objectMapper = objectMapper;
+		this.registrations = registrationService;
 		this.apiKey = apiKey;
 		this.apiKeySecret = apiKeySecret;
 	}
@@ -64,36 +50,34 @@ class TwitterApiIntegration {
 	 * @param clientSecret the OAuth client secret
 	 * @param twitterUsername the Twitter username under whose name we should send these
 	 * tweets
-	 * @param json the payload we'd like to send out (should comply with the <a href=
-	 * "https://developer.twitter.com/en/docs/twitter-api/tweets/manage-tweets/api-reference/post-tweets">expectations
-	 * of the Twitter HTTP API</a>}
 	 */
-	/* package private for testing */
-	public Mono<TweetResponse> tweet(String clientId, String clientSecret, String twitterUsername, String json) {
+	@SneakyThrows
+	public Mono<TweetResponse> tweet(String clientId, String clientSecret, String twitterUsername, String text,
+			Resource media) {
+		return tweet(clientId, clientSecret, twitterUsername, text, media == null ? null : media.getInputStream());
+	}
+
+	@SneakyThrows
+	public Mono<TweetResponse> tweet(String clientId, String clientSecret, String twitterUsername, String text,
+			InputStream media) {
+
 		log.debug("trying to send the tweet: clientId: [" + clientId + "], clientSecret: ["
-				+ StringUtils.securityMask(clientSecret) + "], twitterUsername: [@" + twitterUsername + "], json: ["
-				+ json + "]");
+				+ StringUtils.securityMask(clientSecret) + "], twitterUsername: [@" + twitterUsername + "]");
 		return this.clients //
 				.authenticate(clientId, clientSecret)//
 				.flatMap(c -> this.registrations.byUsername(twitterUsername))//
 				.doOnNext(registration -> log.info("got a valid registration for @" + registration.username() + "."))//
-				.flatMap(tr -> post(json, tr))//
+				.flatMap(registration -> post(new Request(text, com.joshlong.twitter.utils.Base64Utils.encode(media)),
+						registration))//
 				.doOnError(e -> log.error("oops!", e)) //
 				.doOnNext(pt -> log.info("posted tweet: " + pt.toString()));
 	}
 
 	record Request(String text, String image) {
-
 	}
 
 	@SneakyThrows
-	Mono<TweetResponse> post(String json, TwitterRegistration twitterRegistration) {
-		var parse = objectMapper.readValue(json, Request.class);
-		return post(parse, twitterRegistration);
-	}
-
-	@SneakyThrows
-	Mono<TweetResponse> post(Request request, TwitterRegistration twitterRegistration) {
+	private Mono<TweetResponse> post(Request request, TwitterRegistration twitterRegistration) {
 
 		var twitter = this.getTwitterInstance(this.apiKey, this.apiKeySecret, twitterRegistration.accessToken(),
 				twitterRegistration.accessTokenSecret());

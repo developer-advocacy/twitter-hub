@@ -10,7 +10,7 @@ import java.util.Map;
 
 @Slf4j
 @Configuration
-class RegistrationsConfiguration {
+class TwitterRegistrationConfiguration {
 
 	@Bean
 	ApplicationRunner registrationRunner(TwitterRegistrationService registrations,

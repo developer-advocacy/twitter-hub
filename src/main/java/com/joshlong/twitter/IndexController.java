@@ -8,11 +8,11 @@ import java.util.Map;
 
 @Controller
 @ResponseBody
-class DefaultHelloController {
+class IndexController {
 
 	@GetMapping("/")
 	Map<String, String> hello() {
-		return Map.of("message", "Hello, world!");
+		return Map.of("message", "Nothing to see here...");
 	}
 
 }
