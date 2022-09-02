@@ -2,6 +2,7 @@ package com.joshlong.twitter.registrations;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Controller;
 import org.springframework.util.Assert;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -19,7 +20,8 @@ class TwitterRegistrationController {
 
 	private final TwitterRegistrationService registrationService;
 
-	@PostMapping("/register")
+	@PostMapping(value = "/register",
+			consumes = { MediaType.MULTIPART_FORM_DATA_VALUE, MediaType.APPLICATION_FORM_URLENCODED_VALUE })
 	Mono<Void> register(@RequestBody Map<String, String> registration) {
 		var username = registration.get("username");
 		var at = registration.getOrDefault("accessToken", registration.getOrDefault("access_token", null));
