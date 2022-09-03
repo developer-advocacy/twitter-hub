@@ -58,7 +58,7 @@ class SchedulerConfiguration {
 		return sink -> sink //
 				.flatMap(message -> { //
 					var unparsedPayload = message.getPayload();
-					log.debug("payload: " + unparsedPayload);
+					log.info("new payload: " + unparsedPayload);
 					var payload = parseJsonIntoTweetRequest(objectMapper, message.getPayload());
 					var scheduledTweet = new ScheduledTweet(payload.twitterUsername(), payload.text(), payload.media(),
 							payload.scheduled(), payload.clientId(), payload.clientSecret(), null,
