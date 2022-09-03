@@ -14,8 +14,6 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.integration.amqp.dsl.Amqp;
 import org.springframework.integration.dsl.IntegrationFlow;
 import org.springframework.integration.dsl.IntegrationFlows;
-import org.springframework.integration.handler.GenericHandler;
-import org.springframework.messaging.Message;
 
 import java.util.Date;
 import java.util.UUID;
@@ -29,10 +27,11 @@ class InboundIntegrationConfiguration {
 			ConnectionFactory connectionFactory) {
 		return IntegrationFlows //
 				.from(Amqp.inboundAdapter(connectionFactory, "twitter-requests-queue"))//
-				.handle((GenericHandler<Message<String>>) (payload, headers) -> {
+				.handle(String.class, (payload, headers) -> {
 					twitterRequests(payload, objectMapper, service);
 					return null;
-				}).get();
+				}) //
+				.get();
 
 	}
 
@@ -51,9 +50,8 @@ class InboundIntegrationConfiguration {
 		return QueueBuilder.durable("twitter-requests-queue").build();
 	}
 
-	private static void twitterRequests(Message<String> message, ObjectMapper objectMapper,
-			ScheduledTweetService service) {
-		var unparsedPayload = message.getPayload();
+	private static void twitterRequests(String message, ObjectMapper objectMapper, ScheduledTweetService service) {
+		var unparsedPayload = message;
 		log.info("new payload: " + unparsedPayload);
 		var payload = parseJsonIntoTweetRequest(objectMapper, message.getPayload());
 		var scheduledTweet = new ScheduledTweet(payload.twitterUsername(), payload.text(), payload.media(),
