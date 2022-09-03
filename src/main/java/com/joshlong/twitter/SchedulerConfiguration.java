@@ -72,7 +72,6 @@ class SchedulerConfiguration {
 		var jn = objectMapper.readValue(json, JsonNode.class);
 		var scheduledNode = jn.has("scheduled") ? jn.get("scheduled") : null;
 		var scheduled = (null == scheduledNode) ? new Date() : DateUtils.readIsoDateTime(scheduledNode.textValue());
-
 		return new TweetRequest(//
 				jn.get("clientId").textValue(), //
 				jn.get("clientSecret").textValue(), //

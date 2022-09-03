@@ -1,9 +1,9 @@
 package com.joshlong.twitter;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.joshlong.twitter.clients.ClientService;
 import com.joshlong.twitter.registrations.TwitterRegistrationService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.availability.AvailabilityChangeEvent;
@@ -57,9 +57,11 @@ public class Application {
 	}
 
 	@Bean
-	WebFilter loggingWebFilter() {
+	WebFilter loggingWebFilter(@Value("${debug:false}") boolean debug) {
 		return (exchange, chain) -> {
-			exchange.getResponse().getHeaders().forEach((k, v) -> log.info("header: " + k + "=" + v));
+			if (debug)
+				exchange.getResponse().getHeaders().forEach((k, v) -> log.debug("header: " + k + "=" + v));
+
 			return chain.filter(exchange);
 		};
 	}
