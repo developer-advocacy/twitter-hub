@@ -37,7 +37,7 @@ starbuxman          | Hello, world! | 2019-09-07T-15:50+00 | youtube-promotion-s
 
 Finally, a scheduled background thread will run, let's say, every five minutes and find all the tweets scheduled to be sent between now and five minutes from now and send them. As each one is successfully sent, it must update the table, setting `datetime_sent` to a non-null ISO 8601 datetime. 
 
-### Security 
+##  Security 
 
 We'll need a mechanism for adding clients to the system. For a first cut, perhaps we could just manually add clients and passwords to a `clients` table?
 
@@ -56,7 +56,7 @@ The `access_token` and `refresh_token` values too must be encrypted using a salt
 * if it fails to specify a client 
 * if the client password - once encrypted - does not match the password stored in the database   
 
-### Twitter 
+##  Twitter 
 
 There's a ridiculous sitution in the Twitterverse at the moment (2022-08) where: 
 
