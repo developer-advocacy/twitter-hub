@@ -21,7 +21,7 @@ create table if not exists twitter_scheduled_tweets
     id            varchar(255)  not null,
     username      varchar(1000) not null references twitter_accounts (username),
     tweet_text    text          not null,
-    tweet_media   text          not null,
+    tweet_media   text          null,
     scheduled     timestamp     not null,
     client_id     text          not null references twitter_clients (client_id),
     client_secret text          not null,
