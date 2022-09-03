@@ -12,7 +12,7 @@ Ideally, we should have a PostgreSQL table  (`twitter_accounts`) that looks like
 
 ```shell
 ------------------------------------------------------------------------
-twitter_username    | access_token            | refresh_token
+twitter_username    | access_token            | access_token_secret
 ------------------------------------------------------------------------
 starbuxman         | fejsfljfdosjd3hdkls...  | 6MToxOnJ0OjEfdkf..
 springtipslive     | ewef3424fsds...         | dffgd64jkxvh93...
@@ -20,19 +20,19 @@ springtipslive     | ewef3424fsds...         | dffgd64jkxvh93...
 
 The service accepts new requests on a RabbitMQ exchange. Each request should contain:
 
-* the JSON data of the request to send to the Twitter v2 `/v2/tweets` endpoint 
+* the JSON data of the request to send to the Twitter v1 endpoints
 * the username (e.g.: `@starbuxman`)
 * the datetime in ISO 8601 format specifying when the tweet should be sent 
-* some sort of shared secret between the `twitter-service` and the client, sent perhaps as a header. This shared secret should have the effect of identifying the client making the request. 
+* some sort of shared secret between the `twitter-gateway` and the client, sent perhaps as a header. This shared secret should have the effect of identifying the client making the request. 
 
 If the shared secret is validated, then the data in the request is written to a database table (`twitter_scheduled_tweets`) that looks something like this:
 
 
 ```shell
 -------------------------------------------------------------------------------------------------------------------------------- 
-twitter_username    | json_request                | datetime                | client-id                   | datetime_sent
+twitter_username    | tweet_text    | datetime             | client-id                 | tweet_media | ...
 -------------------------------------------------------------------------------------------------------------------------------- 
-starbuxman          | {"text": "Hello, world!"}   | 2019-09-07T-15:50+00	| youtube-promotion-service   | null
+starbuxman          | Hello, world! | 2019-09-07T-15:50+00 | youtube-promotion-service | null        | ... 
 ```
 
 Finally, a scheduled background thread will run, let's say, every five minutes and find all the tweets scheduled to be sent between now and five minutes from now and send them. As each one is successfully sent, it must update the table, setting `datetime_sent` to a non-null ISO 8601 datetime. 
@@ -58,8 +58,11 @@ The `access_token` and `refresh_token` values too must be encrypted using a salt
 
 ### Twitter 
 
-We're using Spring Security's PKCE support to login and incept an access token and refresh token. We'll need to develop a simple Twitter client to support posting to a given HTTP endpoint with the right access token and gracefully handling the situation where we need to use the refresh token to source a new access token. Here's documentation on how to [incorporate the use of refresh tokens](https://developer.twitter.com/en/docs/authentication/oauth-2-0/authorization-code) in the Twitter API. It has a usable `curl` incantation.
+There's a ridiculous sitution in the Twitterverse at the moment (2022-08) where: 
 
+* you can sign up for a developer account and get access to `Essentials` which limits you to only the v2 APIs  
+* there are a number of APIs that don't have parity in the v2 APIs, so you have to use the v1 APIs. e.g.: tweeting with an uploaded image. 
+* you _can_ acccess the v1 APIs if you have `Elevated` access, but that requires a tedious form that somebody at Twitter will have to read and agree for you 
 
 
 ## Getting Started
@@ -80,36 +83,34 @@ You'll need to send a valid message to the RabbitMQ exchange bound (by default, 
 The payload should look something like this: 
 
 ```json 
-{"clientId":"test-client","clientSecret":"1234","twitterUsername":"bpmpass","jsonRequest":" { \"text\" : \"Hello rmq-sent message  2022-08-08T11:27:13.773743Z!\" }\n"}
+{"clientId":"test-client","clientSecret":"1234","twitterUsername":"bpmpass","text":"Hello rmq-sent message  2022-08-08"}
 ```
 
-If you're using Spring Cloud Stream then you might use code like this: 
+I've extracted out all the logic around how to issue requests over RabbitMQ to be consumed by this gateway into [a separate module](https://github.com/developer-advocacy/twitter-gateway-client), that in turn has its own Spring Boot autoconfiguration. Bring in the dependency thusly: 
 
-```java
-
-    Mono<Boolean> send() {
-        var bindingNameForOutput = "twitterRequests-out-0";
-        var twitterApiRequestJsonPayload = String.format("""
-                 { "text" : "Hello HTTP controller-sent message  %s!" }
-                """, Instant.now().toString());
-        var payload = Map.of("clientId", "test-client", //
-                "clientSecret", "1234", //
-                "twitterUsername", "bpmpass", //
-                "jsonRequest", twitterApiRequestJsonPayload //
-        );
-        var send = this.streamBridge.send(bindingNameForOutput, new GenericMessage<>(payload));
-        return Mono.just(send);
-    }
-
+```xml
+<dependency>
+    <groupId>com.joshlong.twitter</groupId>
+    <artifactId>twitter-gateway-client</artifactId>
+    <version>0.0.2-SNAPSHOT</version>
+</dependency>
 ```
 
-This assumes you've paired that Java code with appropriate configuration, which might look like this:
 
-```properties 
-spring.cloud.stream.bindings.twitterRequests-out-0.destination=twitter-requests
+## Seeding the `twitter_accounts` table. 
+
+The gateway works by issuing tweets for you on behalf of certain Twitter accounts. You'll need to ensure that you have valid access tokens and access tokens secrets in the database. 
+
+You'll need to 
+
+* create an application on the Twitter dev portal. 
+* gather the app consumer keys api key and secret 
+* then use [this handy tool `tw-oob-oauth-cli`](https://github.com/smaeda-ks/tw-oob-oauth-cli) to - from the command line, drive an authentication attempt with twitter's PIN-based OAuth system. It'll then dump out the access token and access token secret on the command line. Note them for later, along with the handle of the Twitter account. 
+* then issue a (possibly authenticated) request against the Twitter gateway's `/register` endpoint, like this: 
+
+```shell
+
 ```
-
-And that in turn assumes that `twitter-requests` is the name of the exchange you've specified to accept requests.
 
 ## Resources 
 
