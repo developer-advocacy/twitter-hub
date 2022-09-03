@@ -53,7 +53,7 @@ class InboundIntegrationConfiguration {
 	private static void twitterRequests(String message, ObjectMapper objectMapper, ScheduledTweetService service) {
 		var unparsedPayload = message;
 		log.info("new payload: " + unparsedPayload);
-		var payload = parseJsonIntoTweetRequest(objectMapper, message.getPayload());
+		var payload = parseJsonIntoTweetRequest(objectMapper, message);
 		var scheduledTweet = new ScheduledTweet(payload.twitterUsername(), payload.text(), payload.media(),
 				payload.scheduled(), payload.clientId(), payload.clientSecret(), null, UUID.randomUUID().toString());
 		service.schedule(scheduledTweet, null).block();
