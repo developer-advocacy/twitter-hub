@@ -63,7 +63,8 @@ class SqlScheduledTweetService implements ScheduledTweetService {
 
 	@Override
 	public Mono<ScheduledTweet> schedule(ScheduledTweet tweet, Date promoted) {
-		Assert.notNull(promoted, "you must provide the datetime at which point the ScheduledTweet was sent");
+		// Assert.notNull(promoted, "you must provide the datetime at which point the
+		// ScheduledTweet was sent");
 		return this.schedule(tweet.username(), tweet.text(), tweet.media(), tweet.scheduled(), tweet.clientId(),
 				tweet.clientSecret(), promoted);
 	}

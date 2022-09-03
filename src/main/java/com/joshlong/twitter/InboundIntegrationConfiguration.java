@@ -32,7 +32,6 @@ class InboundIntegrationConfiguration {
 					return null;
 				}) //
 				.get();
-
 	}
 
 	@Bean
@@ -51,8 +50,7 @@ class InboundIntegrationConfiguration {
 	}
 
 	private static void twitterRequests(String message, ObjectMapper objectMapper, ScheduledTweetService service) {
-		var unparsedPayload = message;
-		log.info("new payload: " + unparsedPayload);
+		log.info("new payload: " + message);
 		var payload = parseJsonIntoTweetRequest(objectMapper, message);
 		var scheduledTweet = new ScheduledTweet(payload.twitterUsername(), payload.text(), payload.media(),
 				payload.scheduled(), payload.clientId(), payload.clientSecret(), null, UUID.randomUUID().toString());
