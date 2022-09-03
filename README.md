@@ -105,12 +105,26 @@ You'll need to
 
 * create an application on the Twitter dev portal. 
 * gather the app consumer keys api key and secret 
-* then use [this handy tool `tw-oob-oauth-cli`](https://github.com/smaeda-ks/tw-oob-oauth-cli) to - from the command line, drive an authentication attempt with twitter's PIN-based OAuth system. It'll then dump out the access token and access token secret on the command line. Note them for later, along with the handle of the Twitter account. 
-* then issue a (possibly authenticated) request against the Twitter gateway's `/register` endpoint, like this: 
+* then use [this handy tool `tw-oob-oauth-cli`](https://github.com/smaeda-ks/tw-oob-oauth-cli) to - from the command line, drive an authentication attempt with twitter's PIN-based OAuth system. It'll then dump out the access token and access token secret on the command line. Note them for later, along with the handle of the Twitter account. You kick off the application by downloading the relevant `go` binary and then running: `tw-oob-oauth --consumer-key value --consumer-secret value`
+* then issue a (possibly authenticated) POST request against the Twitter gateway's `/register` endpoint with something like the following JSON in the body:
+
+```json
+{ 
+   "username" : ... , 
+   "access_token" : ... , 
+   "access_token_secret" : .. 
+}
+```
+
+You might use a `curl` command like this: 
 
 ```shell
-
+curl  -H"content-type: application/json" -XPOST  -d'<JSON>' https://yourhost:port/register  
 ```
+
+Be sure to replace `<JSON>` with the contents of the JSON structure described above. 
+
+This will _encrypt_ the sensitive values - the `acces_token` and `access_token_secre` - before writing them to the DB. Ensure that you then promptly delete any files where you may have stored that JSON or those values earlier. 
 
 ## Resources 
 
