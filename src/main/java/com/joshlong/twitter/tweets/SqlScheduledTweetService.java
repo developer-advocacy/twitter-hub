@@ -1,6 +1,5 @@
 package com.joshlong.twitter.tweets;
 
-import com.joshlong.twitter.utils.Base64Utils;
 import com.joshlong.twitter.utils.TwitterUtils;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -9,10 +8,10 @@ import org.springframework.security.crypto.encrypt.TextEncryptor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.Assert;
+import org.springframework.util.StringUtils;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.io.InputStream;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Map;
@@ -77,7 +76,8 @@ class SqlScheduledTweetService implements ScheduledTweetService {
 				insert into twitter_scheduled_tweets (
 				    id,
 				    username,
-				    json_request,
+				    tweet_text,
+				    tweet_media,
 				    scheduled,
 				    client_id,
 				    client_secret,
@@ -95,7 +95,8 @@ class SqlScheduledTweetService implements ScheduledTweetService {
 				on conflict on constraint twitter_scheduled_tweets_pkey
 				do update set
 				    scheduled = excluded.scheduled ,
-				    json_request = excluded.json_request ,
+				    tweet_text = excluded.tweet_text ,
+				    tweet_media = excluded.tweet_media  ,
 				    sent = excluded.sent
 				""";
 		Assert.hasText(twitterUsername,
@@ -104,11 +105,12 @@ class SqlScheduledTweetService implements ScheduledTweetService {
 		var executeSpec = this.dbc//
 				.sql(sql)//
 				.bind("username", username) //
-				.bind("tweet_text", text).bind("scheduled", scheduled)//
+				.bind("tweet_text", text)//
+				.bind("scheduled", scheduled)//
 				.bind("id", id)//
 				.bind("client_secret", this.encryptor.encrypt(clientSecret))//
 				.bind("client_id", clientId);
-		executeSpec = (media == null) ? executeSpec.bindNull("tweet_media", String.class)
+		executeSpec = (!StringUtils.hasText(media)) ? executeSpec.bindNull("tweet_media", String.class)
 				: executeSpec.bind("tweet_media", media);
 		executeSpec = (sent == null) ? executeSpec.bindNull("sent", Date.class) : executeSpec.bind("sent", sent);
 		var findByIdSql = """
