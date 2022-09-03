@@ -87,7 +87,8 @@ class SqlScheduledTweetService implements ScheduledTweetService {
 				values (
 				    :id,
 				    :username,
-				    :json_request,
+				    :tweet_text,
+				    :tweet_media,
 				    :scheduled,
 				    :client_id,
 				    :client_secret,
