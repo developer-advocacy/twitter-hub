@@ -78,7 +78,7 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-maven-
 
-      - uses: joshlong/java-version-export-github-action@v18
+      - uses: joshlong/java-version-export-github-action@v20
 
       - uses: actions/setup-java@v3
         with:
