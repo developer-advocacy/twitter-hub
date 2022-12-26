@@ -52,12 +52,17 @@ jobs:
         with:
           credentials_json: '${{ secrets.GCP_CREDENTIALS }}'
 
-      - uses: google-github-actions/setup-gcloud@v0
+      - id: 'get-credentials'
+        uses: 'google-github-actions/get-gke-credentials@v1'
+        with:
+          cluster_name:   '${{ secrets.GKE_CLUSTER  }}'
+          location:       '${{ secrets.GKE_ZONE }}'
+
 
       - run: |
+          # gcloud container clusters get-credentials "$GKE_CLUSTER" --zone "$GKE_ZONE"
           gcloud config set project $PROJECT_ID
           gcloud --quiet auth configure-docker
-          gcloud container clusters get-credentials "$GKE_CLUSTER" --zone "$GKE_ZONE"
           kubectl get pods
 
       - uses: actions/cache@v3
