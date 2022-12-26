@@ -10,8 +10,7 @@ public abstract class StringUtils {
 
 	private static String repeat(char maskChar, int count) {
 		var n = new StringBuffer();
-		for (var i = 0; i < count; i++)
-			n.append(maskChar);
+		n.append(String.valueOf(maskChar).repeat(Math.max(0, count)));
 		return n.toString();
 	}
 

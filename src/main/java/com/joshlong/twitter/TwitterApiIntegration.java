@@ -102,7 +102,7 @@ class TwitterApiIntegration {
 
 	private Twitter getTwitterInstance(String apiKey, String apiKeySecret, String accessToken,
 			String accessTokenSecret) {
-		var key = ("" + apiKey + apiKeySecret + accessTokenSecret + accessToken);
+		var key = ("" + apiKey + "" + apiKeySecret + "" + accessTokenSecret + "" + accessToken);
 		Assert.hasText(key, "the key must have text!");
 		return this.twitterCacheMap.computeIfAbsent(key, k -> {
 			var cb = new ConfigurationBuilder() //

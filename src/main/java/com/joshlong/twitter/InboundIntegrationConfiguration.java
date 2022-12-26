@@ -25,7 +25,7 @@ class InboundIntegrationConfiguration {
 	@Bean
 	IntegrationFlow inboundIntegrationFlow(ObjectMapper objectMapper, ScheduledTweetService service,
 			ConnectionFactory connectionFactory) {
-		return IntegrationFlows //
+		return IntegrationFlow //
 				.from(Amqp.inboundAdapter(connectionFactory, "twitter-requests-queue"))//
 				.handle(String.class, (payload, headers) -> {
 					twitterRequests(payload, objectMapper, service);

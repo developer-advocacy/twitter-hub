@@ -31,6 +31,16 @@ public class Application {
 		SpringApplication.run(Application.class, args);
 	}
 
+	@EventListener
+	public void liveness(AvailabilityChangeEvent<LivenessState> live) {
+		log.info("liveness: " + live.toString());
+	}
+
+	@EventListener
+	public void readiness(AvailabilityChangeEvent<ReadinessState> live) {
+		log.info("readiness: " + live.toString());
+	}
+
 	@Bean
 	WebClient webClient(WebClient.Builder webClient) {
 		return webClient.build();
@@ -44,16 +54,6 @@ public class Application {
 	@Bean
 	PasswordEncoder passwordEncoder() {
 		return PasswordEncoderFactories.createDelegatingPasswordEncoder();
-	}
-
-	@EventListener
-	public void liveness(AvailabilityChangeEvent<LivenessState> live) {
-		log.info("liveness: " + live.toString());
-	}
-
-	@EventListener
-	public void readiness(AvailabilityChangeEvent<ReadinessState> live) {
-		log.info("readiness: " + live.toString());
 	}
 
 	@Bean
