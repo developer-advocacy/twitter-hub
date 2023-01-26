@@ -14,7 +14,7 @@ class TwitterRegistrationConfiguration {
 
 	@Bean
 	ApplicationRunner registrationRunner(TwitterRegistrationService registrations,
-			@Value("${debug:true}") boolean debug) {
+			@Value("${debug:false}") boolean debug) {
 		return args -> {
 			if (debug) {
 				registrations.registrations().subscribe(tr -> log.info("" + Map.of("username", tr.username(),
