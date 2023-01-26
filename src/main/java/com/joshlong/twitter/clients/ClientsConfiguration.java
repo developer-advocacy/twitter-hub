@@ -24,13 +24,17 @@ class ClientsConfiguration {
 				Flux//
 						.fromArray(properties.clients()) //
 						.flatMap(c -> {
+							var keep = 4;
 							var clientId = c.id();
 							var secret = c.secret();// todo
-							var valueToPrintForSecret = debug ? secret : repeat('*', secret.length());
+							var valueToPrintForClientId = debug ? clientId
+									: clientId.substring(0, keep) + repeat('*', clientId.length() - keep);
+							var valueToPrintForSecret = debug ? secret
+									: secret.substring(0, keep) + repeat('*', secret.length() - keep);
 							return clientService //
 									.register(clientId, secret) //
-									.doOnNext(cc -> log.info(
-											String.format("registering client %s with secret %s", clientId, secret)));
+									.doOnNext(cc -> log.info(String.format("registering client %s with secret %s",
+											valueToPrintForClientId, valueToPrintForSecret)));
 						})//
 						.subscribe();
 
