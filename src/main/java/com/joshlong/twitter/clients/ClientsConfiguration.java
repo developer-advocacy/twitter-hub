@@ -20,29 +20,31 @@ class ClientsConfiguration {
 	ApplicationRunner clientInitialization(@Value("${debug:false}") boolean debug, ClientService clientService,
 			TwitterProperties properties) {
 		return args -> {
-			if ((properties.clients() != null && properties.clients().length > 0)) {
-				Flux//
-						.fromArray(properties.clients()) //
-						.flatMap(c -> {
-							var keep = 4;
-							var clientId = c.id();
-							var secret = c.secret();// todo
-							var valueToPrintForClientId = debug ? clientId
-									: clientId.substring(0, keep) + repeat('*', clientId.length() - keep);
-							var valueToPrintForSecret = debug ? secret
-									: secret.substring(0, keep) + repeat('*', secret.length() - keep);
-							return clientService //
-									.register(clientId, secret) //
-									.doOnNext(cc -> log.info(String.format("registering client %s with secret %s",
-											valueToPrintForClientId, valueToPrintForSecret)));
-						})//
-						.subscribe();
-
-			} //
-			else {
-				log.warn("there are no clients to register. Returning.");
+			if (properties.clients() != null) {
+				var length = properties.clients().length;
+				if (length > 0) {
+					log.info("need to register " + length + " client");
+					Flux//
+							.fromArray(properties.clients()) //
+							.flatMap(c -> {
+								var keep = 4;
+								var clientId = c.id();
+								var secret = c.secret();// todo
+								var valueToPrintForClientId = debug ? clientId
+										: clientId.substring(0, keep) + repeat('*', clientId.length() - keep);
+								var valueToPrintForSecret = debug ? secret
+										: secret.substring(0, keep) + repeat('*', secret.length() - keep);
+								return clientService //
+										.register(clientId, secret) //
+										.doOnNext(cc -> log.info(String.format("registering client %s with secret %s",
+												valueToPrintForClientId, valueToPrintForSecret)));
+							})//
+							.subscribe();
+				} //
+				else {
+					log.warn("there are no clients to register. Returning.");
+				}
 			}
-
 		};
 	}
 
