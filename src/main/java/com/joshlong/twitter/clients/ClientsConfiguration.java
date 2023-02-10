@@ -23,7 +23,7 @@ class ClientsConfiguration {
 			if (properties.clients() != null) {
 				var length = properties.clients().length;
 				if (length > 0) {
-					log.info("need to register " + length + " client");
+					log.info("need to register " + length + " client" + (length > 1 ? "s" : ""));
 					Flux//
 							.fromArray(properties.clients()) //
 							.flatMap(c -> {
