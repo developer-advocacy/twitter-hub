@@ -41,9 +41,10 @@ class ClientsConfiguration {
 							})//
 							.subscribe();
 				} //
-				else {
-					log.warn("there are no clients to register. Returning.");
-				}
+
+			}
+			else {
+				log.warn("there are no clients to register. Returning.");
 			}
 		};
 	}
