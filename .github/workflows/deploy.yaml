@@ -80,11 +80,12 @@ jobs:
 
 
       - uses: joshlong/java-version-export-github-action@v28
+        id: jve
 
       - uses: actions/setup-java@v3
         with:
           distribution: 'adopt'
-          java-version: ${{ env.JAVA_MAJOR_VERSION }}
+          java-version: ${{ steps.jve.outputs.java_major_version }}
 
       - name: Deploy Twitter Hub
         run: |
