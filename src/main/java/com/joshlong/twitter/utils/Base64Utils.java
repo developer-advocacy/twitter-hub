@@ -13,7 +13,7 @@ public abstract class Base64Utils {
 	@SneakyThrows
 	public static InputStream decode(String media) {
 		if (org.springframework.util.StringUtils.hasText(media)) {
-			var decoded =  decodeFromString(media);
+			var decoded = decodeFromString(media);
 			return new ByteArrayInputStream(decoded);
 		}
 		return null;
@@ -26,10 +26,9 @@ public abstract class Base64Utils {
 		var inResource = new InputStreamResource(file);
 		try (var f = inResource.getInputStream()) {
 			var content = FileCopyUtils.copyToByteArray(f);
-			return  encodeToString(content);
+			return encodeToString(content);
 		}
 	}
-
 
 	private static String encodeToString(byte[] src) {
 		if (src.length == 0) {
@@ -44,4 +43,5 @@ public abstract class Base64Utils {
 		}
 		return Base64.getDecoder().decode(src);
 	}
+
 }
