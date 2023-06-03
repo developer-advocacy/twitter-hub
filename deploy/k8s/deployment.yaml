@@ -2,22 +2,22 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   labels:
-    app: twitter
-  name: twitter
+    app: twitter-hub
+  name: twitter-hub
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: twitter
+      app: twitter-hub
   template:
     metadata:
       labels:
-        app: twitter
+        app: twitter-hub
     spec:
       containers:
-        - image: gcr.io/bootiful/twitter
+        - image: gcr.io/bootiful/twitter-hub
           imagePullPolicy: Always
-          name: twitter-container
+          name: twitter-hub-container
           startupProbe:
             failureThreshold: 60
             periodSeconds: 60
@@ -40,17 +40,12 @@ spec:
               path: /actuator/health/liveness
           envFrom:
             - secretRef:
-                name: twitter-secrets
+                name: twitter-hub-secrets
           env:
             - name: SPRING_PROFILES_ACTIVE
               value: "production"
             - name: LANG
               value: "en_US.UTF-8"
-#            - name: TWITTER_ENCRYPTION_SALT
-#              valueFrom:
-#                secretKeyRef:
-#                  name: twitter-secrets
-#                  key: TWITTER_ENCRYPTION_SALT
           resources:
             limits:
               memory: "1Gi"

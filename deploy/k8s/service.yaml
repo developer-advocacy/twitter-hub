@@ -4,12 +4,12 @@ metadata:
   annotations:
     cloud.google.com/neg: '{"ingress": true}'
   labels:
-    app: twitter
-  name: twitter
+    app: twitter-hub
+  name: twitter-hub
 spec:
   ports:
     - port: 80
       targetPort: 8080
   selector:
-    app: twitter
+    app: twitter-hub
   type: LoadBalancer

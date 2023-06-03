@@ -1,7 +1,7 @@
 apiVersion: networking.gke.io/v1
 kind: ManagedCertificate
 metadata:
-  name: twitter-certificate
+  name: twitter-hub-certificate
 spec :
   domains:
     - twitter.developeradvocacy.services

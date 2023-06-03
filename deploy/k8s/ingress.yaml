@@ -3,13 +3,13 @@ kind: Ingress
 metadata:
   annotations:
     ingress.kubernetes.io/force-ssl-redirect: "true"
-    networking.gke.io/managed-certificates: "twitter-certificate"
-    kubernetes.io/ingress.global-static-ip-name: "twitter-ip"
-  name: twitter-ingress
+    networking.gke.io/managed-certificates: "twitter-hub-certificate"
+    kubernetes.io/ingress.global-static-ip-name: "content-hubs-twitter-hub-ip"
+  name: twitter-hub-ingress
 spec:
   defaultBackend:
     service:
-      name: twitter
+      name: twitter-hub
       port:
         number: 80
 

@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 set -e
 set -o pipefail
-export APP_NAME=twitter
+export APP_NAME=twitter-hub
 export SECRETS=${APP_NAME}-secrets
 export SECRETS_FN=$HOME/${SECRETS}
-export IMAGE_NAME=gcr.io/${PROJECT_ID}/${APP_NAME}
-export RESERVED_IP_NAME=${APP_NAME}-ip
+export IMAGE_NAME=gcr.io/${GCLOUD_PROJECT}/${APP_NAME}
+export RESERVED_IP_NAME=${NS_NAME}-${APP_NAME}-ip
 
 echo "-----"
 echo $RESERVED_IP_NAME
