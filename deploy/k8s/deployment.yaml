@@ -15,7 +15,7 @@ spec:
         app: twitter-hub
     spec:
       containers:
-        - image: gcr.io/bootiful/twitter-hub
+        - image: gcr.io/pgtm-jlong/twitter-hub
           imagePullPolicy: Always
           name: twitter-hub-container
           startupProbe:
