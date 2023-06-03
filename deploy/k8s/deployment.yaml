@@ -19,22 +19,22 @@ spec:
           imagePullPolicy: Always
           name: twitter-hub-container
           startupProbe:
-            failureThreshold: 60
-            periodSeconds: 60
+            failureThreshold: 240
+            periodSeconds: 240
             httpGet:
               port: 8080
               path: /actuator/health/readiness
 
           readinessProbe:
-            failureThreshold: 60
-            periodSeconds: 60
+            failureThreshold: 240
+            periodSeconds: 240
             httpGet:
               port: 8080
               path: /actuator/health/readiness
 
           livenessProbe:
-            failureThreshold: 60
-            periodSeconds: 60
+            failureThreshold: 240
+            periodSeconds: 240
             httpGet:
               port: 8080
               path: /actuator/health/liveness
